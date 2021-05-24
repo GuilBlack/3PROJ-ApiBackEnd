@@ -37,7 +37,7 @@ passport.use(
 		User.findOne({ email: username }, (err, user) => {
 			if (err) return done(err);
 			if (!user)
-				return done(null, false, { message: "Incorrect Username." });
+				return done(null, false, { message: "Incorrect email." });
 			user.validatePassword(password, done); //function declared with the user schema to validate passwd
 		});
 	})
