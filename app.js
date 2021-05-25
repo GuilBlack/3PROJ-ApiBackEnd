@@ -6,7 +6,7 @@ const { dbPassword, dbUsername } = require("./dbUser");
 const { routes } = require("./src/Routes/appRoutes");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 6969;
 
 // const dbUri = `mongodb+srv://${dbUsername}:${dbPassword}@cluster0.cxlt6.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 // const connectionParams = {

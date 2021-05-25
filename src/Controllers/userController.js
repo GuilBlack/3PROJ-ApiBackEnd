@@ -77,6 +77,7 @@ const registerStaff = (req, res) => {
 
 const logout = (req, res) => {
 	res.clearCookie("access-token"); //clear cookie from the user's browser
+	res.clearCookie("auth-user");
 	res.json({ user: { email: "", role: "" }, success: true });
 };
 
@@ -85,6 +86,7 @@ const login = (req, res) => {
 		const { _id, email, firstName, lastName, role } = req.user;
 		const token = signToken(_id);
 		res.cookie("access-token", token, { httpOnly: true, sameSite: true });
+		res.cookie("auth-user", "authenticated!", { sameSite: true }); // cookie that can be read from the web client
 		res.status(200).json({
 			isAuthenticated: true,
 			user: {
