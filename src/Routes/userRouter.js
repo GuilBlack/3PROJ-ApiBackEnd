@@ -8,6 +8,7 @@ const {
 	login,
 	logout,
 	listStaff,
+	getCustomers
 } = require("../Controllers/userController");
 
 userRouter.post("/register-customer", registerCustomer);
@@ -35,5 +36,7 @@ userRouter.get(
 	passport.authenticate("jwt", { session: false }), //used to see if the user is authorize
 	listStaff
 );
+
+userRouter.get("/get-customers", getCustomers);
 
 module.exports = userRouter;

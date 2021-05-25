@@ -115,6 +115,20 @@ const listStaff = (req, res) => {
 	}
 };
 
+const getCustomers = (req, res) => {
+	User.find({ role: "customer" })
+	.select("email firstName lastName _id")
+	.exec((err, users) => {
+		if (err)
+			res.status(500).json({
+				message:
+					"An error occured while querying the database.",
+			});
+
+		res.status(200).json(users);
+	});
+}
+
 const signToken = (userID) => {
 	//setting up the jwt token
 	return jwt.sign(
@@ -133,4 +147,5 @@ module.exports = {
 	login: login,
 	logout: logout,
 	listStaff: listStaff,
+	getCustomers: getCustomers
 };

@@ -8,20 +8,36 @@ const { routes } = require("./src/Routes/appRoutes");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const dbUri = `mongodb+srv://${dbUsername}:${dbPassword}@cluster0.cxlt6.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
-const connectionParams = {
-	useNewUrlParser: true,
-	useCreateIndex: true,
-	useUnifiedTopology: true,
-};
+// const dbUri = `mongodb+srv://${dbUsername}:${dbPassword}@cluster0.cxlt6.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+// const connectionParams = {
+// 	useNewUrlParser: true,
+// 	useCreateIndex: true,
+// 	useUnifiedTopology: true,
+// };
 
+// mongoose.Promise = global.Promise;
+// mongoose.connect(dbUri, connectionParams, (err) => {
+// 	if (!err) {
+// 		console.log("successfully connected to mongoDB");
+// 	} else {
+// 		console.log("an error occured while connecting to the db: " + err);
+// 	}
+// });
+
+// mongoose connection
 mongoose.Promise = global.Promise;
-mongoose.connect(dbUri, connectionParams, (err) => {
-	if (!err) {
-		console.log("successfully connected to mongoDB");
-	} else {
-		console.log("an error occured while connecting to the db: " + err);
-	}
+mongoose.connect('mongodb://localhost/PROJ', {
+  useNewUrlParser: true, 
+  useUnifiedTopology: true,
+  useCreateIndex: true
+});
+
+// just to be sure that we're correctly connected
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  // we're connected!
+  console.log('Connected to MongoDB!');
 });
 
 var limiter = new RateLimit({
