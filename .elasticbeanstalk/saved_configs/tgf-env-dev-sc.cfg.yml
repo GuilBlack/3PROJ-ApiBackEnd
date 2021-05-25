@@ -1,0 +1,98 @@
+EnvironmentConfigurationMetadata:
+  Description: Configuration created from the EB CLI using "eb config save".
+  DateCreated: '1621936588000'
+  DateModified: '1621936588000'
+Platform:
+  PlatformArn: arn:aws:elasticbeanstalk:eu-west-3::platform/Node.js 14 running on 64bit Amazon Linux 2/5.3.2
+OptionSettings:
+  aws:elasticbeanstalk:command:
+    BatchSize: '30'
+    BatchSizeType: Percentage
+  AWSEBLoadBalancer.aws:elb:listener:80:
+    ListenerEnabled: false
+  aws:elb:policies:
+    ConnectionDrainingEnabled: true
+  aws:elb:listener:443:
+    ListenerEnabled: true
+    InstancePort: '80'
+    SSLCertificateId: arn:aws:acm:eu-west-3:714643381082:certificate/645dc1d4-ef5b-4477-bdf6-dff2c9c16724
+    ListenerProtocol: HTTPS
+    InstanceProtocol: HTTP
+  aws:elb:loadbalancer:
+    CrossZone: true
+  aws:elasticbeanstalk:environment:
+    ServiceRole: arn:aws:iam::714643381082:role/aws-elasticbeanstalk-service-role
+    LoadBalancerType: classic
+  aws:elasticbeanstalk:healthreporting:system:
+    ConfigDocument:
+      Version: 1
+      CloudWatchMetrics:
+        Instance:
+          RootFilesystemUtil: null
+          CPUIrq: null
+          LoadAverage5min: null
+          ApplicationRequests5xx: null
+          ApplicationRequests4xx: null
+          CPUUser: null
+          LoadAverage1min: null
+          ApplicationLatencyP50: null
+          CPUIdle: null
+          InstanceHealth: null
+          ApplicationLatencyP95: null
+          ApplicationLatencyP85: null
+          ApplicationLatencyP90: null
+          CPUSystem: null
+          ApplicationLatencyP75: null
+          CPUSoftirq: null
+          ApplicationLatencyP10: null
+          ApplicationLatencyP99: null
+          ApplicationRequestsTotal: null
+          ApplicationLatencyP99.9: null
+          ApplicationRequests3xx: null
+          ApplicationRequests2xx: null
+          CPUIowait: null
+          CPUNice: null
+        Environment:
+          InstancesSevere: null
+          InstancesDegraded: null
+          ApplicationRequests5xx: null
+          ApplicationRequests4xx: null
+          ApplicationLatencyP50: null
+          ApplicationLatencyP95: null
+          ApplicationLatencyP85: null
+          InstancesUnknown: null
+          ApplicationLatencyP90: null
+          InstancesInfo: null
+          InstancesPending: null
+          ApplicationLatencyP75: null
+          ApplicationLatencyP10: null
+          ApplicationLatencyP99: null
+          ApplicationRequestsTotal: null
+          InstancesNoData: null
+          ApplicationLatencyP99.9: null
+          ApplicationRequests3xx: null
+          ApplicationRequests2xx: null
+          InstancesOk: null
+          InstancesWarning: null
+      Rules:
+        Environment:
+          ELB:
+            ELBRequests4xx:
+              Enabled: true
+          Application:
+            ApplicationRequests4xx:
+              Enabled: true
+    SystemType: enhanced
+  aws:autoscaling:launchconfiguration:
+    IamInstanceProfile: aws-elasticbeanstalk-ec2-role
+    EC2KeyName: aws-eb-the-good-fork
+  aws:autoscaling:asg:
+    MinSize: '1'
+    MaxSize: '1'
+  aws:autoscaling:updatepolicy:rollingupdate:
+    RollingUpdateType: Health
+    RollingUpdateEnabled: true
+EnvironmentTier:
+  Type: Standard
+  Name: WebServer
+AWSConfigurationTemplateVersion: 1.1.0.0
