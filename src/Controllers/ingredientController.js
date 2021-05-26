@@ -113,8 +113,24 @@ const deleteIngredient = (req, res) => {
 	}
 };
 
+const listIngredients = (req, res) => {
+	if (req.user.role !== "admin")
+		res.status(401).json({ message: "Unauthorized", msgError: true });
+	else {
+		Ingredient.find().exec((err, ingredients) => {
+			if (err)
+				res.status(500).json({
+					message: "An error occured while querying the database.",
+				});
+
+			res.status(200).json(ingredients);
+		});
+	}
+};
+
 module.exports = {
 	addIngredient: addIngredient,
 	updateStock: updateStock,
 	deleteIngredient: deleteIngredient,
+	listIngredients: listIngredients,
 };

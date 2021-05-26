@@ -6,7 +6,14 @@ const {
 	addIngredient,
 	updateStock,
 	deleteIngredient,
+	listIngredients,
 } = require("../Controllers/ingredientController");
+
+ingredientRouter.get(
+	"/get",
+	passport.authenticate("jwt", { session: false }),
+	listIngredients
+);
 
 ingredientRouter.post(
 	"/add",
