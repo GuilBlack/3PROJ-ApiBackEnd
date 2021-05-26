@@ -13,16 +13,21 @@ const connectionParams = {
 	useNewUrlParser: true,
 	useCreateIndex: true,
 	useUnifiedTopology: true,
+	useFindAndModify: false,
 };
 
 mongoose.Promise = global.Promise;
-mongoose.connect(dbUri, connectionParams, (err) => {
-	if (!err) {
-		console.log("successfully connected to mongoDB");
-	} else {
-		console.log("an error occured while connecting to the db: " + err);
+mongoose.connect(
+	"mongodb://localhost:27017/theGoodFork",
+	connectionParams,
+	(err) => {
+		if (!err) {
+			console.log("successfully connected to mongoDB");
+		} else {
+			console.log("an error occured while connecting to the db: " + err);
+		}
 	}
-});
+);
 
 var limiter = new RateLimit({
 	windowMs: 60 * 1000, // 1 minutes

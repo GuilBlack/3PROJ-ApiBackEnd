@@ -1,4 +1,5 @@
 const userRouter = require("./userRouter");
+const ingredientRouter = require("./ingredientRouter");
 
 //routing system for user and city
 module.exports = {
@@ -9,5 +10,6 @@ module.exports = {
 			);
 		});
 		app.use("/user", userRouter);
+		app.use("/ingredient", ingredientRouter);
 	},
 };
