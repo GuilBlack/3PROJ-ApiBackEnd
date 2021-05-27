@@ -7,7 +7,7 @@ const MenuCategorySchema = new mongoose.Schema({
 		required: true,
 		unique: true,
 	},
-	menuItems: [MenuItemSchema],
+	menuItems: [{ type: mongoose.SchemaTypes.ObjectId, ref: "MenuItem" }],
 });
 
 module.exports = mongoose.model("MenuCategory", MenuCategorySchema);
