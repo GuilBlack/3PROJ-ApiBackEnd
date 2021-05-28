@@ -6,6 +6,8 @@ const {
 	addMenuCategory,
 	addMenuItem,
 	getAllCategories,
+	deleteMenuItem,
+	deleteCategory,
 } = require("../Controllers/menuController");
 
 menuRouter.post(
@@ -24,6 +26,18 @@ menuRouter.get(
 	"/get-all-categories",
 	passport.authenticate("jwt", { session: false }),
 	getAllCategories
+);
+
+menuRouter.delete(
+	"/delete-menu-item",
+	passport.authenticate("jwt", { session: false }),
+	deleteMenuItem
+);
+
+menuRouter.delete(
+	"/delete-category",
+	passport.authenticate("jwt", { session: false }),
+	deleteCategory
 );
 
 module.exports = menuRouter;

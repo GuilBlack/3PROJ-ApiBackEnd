@@ -18,6 +18,11 @@ const MenuItemSchema = new mongoose.Schema({
 		type: Number,
 		required: true,
 	},
+	menuCategory: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "MenuCategory",
+		required: true,
+	},
 	ingredients: [
 		{
 			ingredient: {
