@@ -38,14 +38,11 @@ const register = (req, res, role) => {
 					});
 				else
 					res.status(201).json({
-						user: {
-							id: user._id,
-							email: email,
-							firstName: firstName,
-							lastName: lastName,
-							role: role,
-						},
-						msgError: false,
+						id: user._id,
+						email: email,
+						firstName: firstName,
+						lastName: lastName,
+						role: role,
 					});
 			});
 		}
@@ -96,13 +93,11 @@ const login = (req, res) => {
 			sameSite: true,
 		}); // cookie that can be read from the web client
 		res.status(200).json({
-			user: {
-				id: _id,
-				email: email,
-				firstName: firstName,
-				lastName: lastName,
-				role: role,
-			},
+			id: _id,
+			email: email,
+			firstName: firstName,
+			lastName: lastName,
+			role: role,
 		});
 	}
 };
