@@ -40,7 +40,7 @@ app.use(express.json());
 app.use(
 	cors({
 		credentials: true,
-		allowedHeaders: true,
+		allowedHeaders: "Content-Type,Authorization",
 		origin: "https://main.d2w06s7g7w0wak.amplifyapp.com",
 	})
 );
