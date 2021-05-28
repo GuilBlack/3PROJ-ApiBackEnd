@@ -33,7 +33,12 @@ var limiter = new RateLimit({
 });
 app.use(limiter);
 
-app.use(cors({ credentials: true }));
+app.use(
+	cors({
+		credentials: true,
+		origin: "https://main.d2w06s7g7w0wak.amplifyapp.com",
+	})
+);
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
