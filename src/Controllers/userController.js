@@ -90,7 +90,6 @@ const login = (req, res) => {
 		});
 		res.cookie("auth-user", "authenticated!", {
 			maxAge: 7 * 24 * 60 * 60 * 1000,
-			httpOnly: true,
 			sameSite: true,
 		}); // cookie that can be read from the web client
 		res.status(200).json({
