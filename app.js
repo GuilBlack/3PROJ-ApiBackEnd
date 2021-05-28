@@ -40,7 +40,8 @@ app.use(express.json());
 app.use(
 	cors({
 		credentials: true,
-		origin: "http://102.118.124.128:3000",
+		allowedHeaders: true,
+		origin: "https://main.d2w06s7g7w0wak.amplifyapp.com",
 	})
 );
 routes(app);
