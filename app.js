@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const cookieParser = require("cookie-parser");
 var RateLimit = require("express-rate-limit");
 const mongoose = require("mongoose");
@@ -32,6 +33,7 @@ var limiter = new RateLimit({
 });
 app.use(limiter);
 
+app.use(cors({ credentials: true }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
