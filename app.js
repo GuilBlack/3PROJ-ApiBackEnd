@@ -1,5 +1,4 @@
 const express = require("express");
-const cors = require("cors");
 const cookieParser = require("cookie-parser");
 var RateLimit = require("express-rate-limit");
 const mongoose = require("mongoose");
@@ -37,12 +36,6 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use(
-	cors({
-		credentials: true,
-		origin: "https://admin.guillaumeblackburn.me",
-	})
-);
 routes(app);
 
 app.listen(PORT, () => {

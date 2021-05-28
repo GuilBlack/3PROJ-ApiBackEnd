@@ -85,11 +85,13 @@ const login = (req, res) => {
 		const token = signToken(_id);
 		res.cookie("access-token", token, {
 			maxAge: 7 * 24 * 60 * 60 * 1000,
-			secure: true,
+			httpOnly: true,
+			sameSite: true,
 		});
 		res.cookie("auth-user", "authenticated!", {
 			maxAge: 7 * 24 * 60 * 60 * 1000,
-			secure: true,
+			httpOnly: true,
+			sameSite: true,
 		}); // cookie that can be read from the web client
 		res.status(200).json({
 			id: _id,
