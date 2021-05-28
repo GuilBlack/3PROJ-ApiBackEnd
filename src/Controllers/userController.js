@@ -16,6 +16,7 @@ const register = (req, res, role) => {
 			//if user already exists, the user will not be able to register
 			res.status(400).json({
 				message: "This email is already taken",
+				user: user,
 				msgError: true,
 			});
 		else {
@@ -28,7 +29,7 @@ const register = (req, res, role) => {
 				role: role,
 			});
 			//save user
-			newUser.save((err) => {
+			newUser.save((err, user) => {
 				if (err)
 					res.status(500).json({
 						message:
@@ -37,8 +38,8 @@ const register = (req, res, role) => {
 					});
 				else
 					res.status(201).json({
-						message: "Account successfully created :D",
 						user: {
+							id: user._id,
 							email: email,
 							firstName: firstName,
 							lastName: lastName,
@@ -96,6 +97,7 @@ const login = (req, res) => {
 		}); // cookie that can be read from the web client
 		res.status(200).json({
 			user: {
+				id: _id,
 				email: email,
 				firstName: firstName,
 				lastName: lastName,
