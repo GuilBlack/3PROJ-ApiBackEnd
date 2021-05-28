@@ -40,7 +40,7 @@ app.use(express.json());
 app.use(
 	cors({
 		credentials: true,
-		origin: "https://main.d2w06s7g7w0wak.amplifyapp.com",
+		origin: "http://tgf-web-env.eu-west-3.elasticbeanstalk.com",
 	})
 );
 routes(app);
