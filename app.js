@@ -40,7 +40,6 @@ app.use(express.json());
 app.use(
 	cors({
 		credentials: true,
-		origin: "http://tgf-web-env.eu-west-3.elasticbeanstalk.com",
 	})
 );
 routes(app);
