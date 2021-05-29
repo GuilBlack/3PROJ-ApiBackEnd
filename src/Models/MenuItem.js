@@ -30,7 +30,7 @@ const MenuItemSchema = new mongoose.Schema({
 				ref: "Ingredient",
 				required: true,
 			},
-			ammountUsed: {
+			amountUsed: {
 				type: Number,
 				required: true,
 			},
