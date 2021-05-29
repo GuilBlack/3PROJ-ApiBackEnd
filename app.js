@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 var RateLimit = require("express-rate-limit");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const { dbPassword, dbUsername } = require("./dbUser");
 const { routes } = require("./src/Routes/appRoutes");
@@ -35,6 +36,8 @@ app.use(limiter);
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use(cors({ credentials: true, origin: "admin.guillaumeblackburn.me" }));
 
 routes(app);
 
