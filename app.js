@@ -37,7 +37,9 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use(cors({ credentials: true, origin: "admin.guillaumeblackburn.me" }));
+app.use(
+	cors({ credentials: true, origin: "https://admin.guillaumeblackburn.me" })
+);
 
 routes(app);
 
