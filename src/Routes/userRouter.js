@@ -8,7 +8,9 @@ const {
 	login,
 	logout,
 	listStaff,
-	getCustomers
+	getCustomers,
+	dummyRoute,
+	dummyPost
 } = require("../Controllers/userController");
 
 userRouter.post("/register-customer", registerCustomer);
@@ -37,6 +39,10 @@ userRouter.get(
 	listStaff
 );
 
-userRouter.get("/get-customers", getCustomers);
+userRouter.get("/get-customers", passport.authenticate("jwt", { session: false }), getCustomers);
+
+userRouter.get('/dummyRoute', passport.authenticate("jwt", { session: false }), dummyRoute);
+
+userRouter.post('/dummyPost', passport.authenticate("jwt", {session: false}), dummyPost);
 
 module.exports = userRouter;

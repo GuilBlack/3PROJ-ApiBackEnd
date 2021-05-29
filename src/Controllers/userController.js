@@ -28,24 +28,22 @@ const register = (req, res, role) => {
 				role: role,
 			});
 			//save user
-			newUser.save((err) => {
+			newUser.save((err, user) => {
 				if (err)
 					res.status(500).json({
 						message:
 							"An Error Occured while saving this new entry.",
 						msgError: true,
 					});
-				else
+				else {
 					res.status(201).json({
-						message: "Account successfully created :D",
-						user: {
-							email: email,
-							firstName: firstName,
-							lastName: lastName,
-							role: role,
-						},
-						msgError: false,
+						id: user._id,
+						email: email,
+						firstName: firstName,
+						lastName: lastName,
+						role: role,
 					});
+				}
 			});
 		}
 	});
@@ -88,13 +86,11 @@ const login = (req, res) => {
 		res.cookie("access-token", token, { httpOnly: true, sameSite: true });
 		res.cookie("auth-user", "authenticated!", { sameSite: true }); // cookie that can be read from the web client
 		res.status(200).json({
-			isAuthenticated: true,
-			user: {
-				email: email,
-				firstName: firstName,
-				lastName: lastName,
-				role: role,
-			},
+			id: _id,
+			email: email,
+			firstName: firstName,
+			lastName: lastName,
+			role: role,
 		});
 	}
 };
@@ -143,11 +139,25 @@ const signToken = (userID) => {
 	);
 };
 
+const dummyRoute = (req, res) => {
+	return res.json({
+		message: 'Authenticated with JWT!'
+	});
+}
+
+const dummyPost = (req, res) => {
+	return res.json({
+		message: req.body.message
+	});
+}
+
 module.exports = {
 	registerCustomer: registerCustomer,
 	registerStaff: registerStaff,
 	login: login,
 	logout: logout,
 	listStaff: listStaff,
-	getCustomers: getCustomers
+	getCustomers: getCustomers,
+	dummyRoute: dummyRoute,
+	dummyPost: dummyPost
 };
