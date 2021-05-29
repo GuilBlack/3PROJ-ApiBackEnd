@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const cookieParser = require("cookie-parser");
 var RateLimit = require("express-rate-limit");
 const mongoose = require("mongoose");
@@ -51,6 +52,13 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.use(
+	cors({
+		credentials: true,
+		allowedHeaders: "Content-Type,Authorization",
+		origin: "https://main.d2w06s7g7w0wak.amplifyapp.com",
+	})
+);
 routes(app);
 
 app.listen(PORT, () => {

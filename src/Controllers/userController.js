@@ -16,6 +16,7 @@ const register = (req, res, role) => {
 			//if user already exists, the user will not be able to register
 			res.status(400).json({
 				message: "This email is already taken",
+				user: user,
 				msgError: true,
 			});
 		else {
@@ -83,8 +84,14 @@ const login = (req, res) => {
 	if (req.isAuthenticated()) {
 		const { _id, email, firstName, lastName, role } = req.user;
 		const token = signToken(_id);
-		res.cookie("access-token", token, { httpOnly: true, sameSite: true });
-		res.cookie("auth-user", "authenticated!", { sameSite: true }); // cookie that can be read from the web client
+		res.cookie("access-token", token, {
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+			secure: true,
+		});
+		res.cookie("auth-user", "authenticated!", {
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+			secure: true,
+		}); // cookie that can be read from the web client
 		res.status(200).json({
 			id: _id,
 			email: email,

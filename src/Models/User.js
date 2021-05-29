@@ -25,6 +25,9 @@ const UserSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	balance: {
+		type: Number,
+	},
 });
 
 //happens before saving an instance of this model in the db
