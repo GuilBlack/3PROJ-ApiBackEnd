@@ -213,8 +213,10 @@ const addMenuItem = (req, res) => {
 
 const getAllCategories = (req, res) => {
 	MenuCategory.find()
+		.sort({ name: -1 })
 		.populate({
 			path: "menuItems",
+			options: { sort: { name: 1 } },
 			populate: {
 				path: "ingredients",
 				populate: {
