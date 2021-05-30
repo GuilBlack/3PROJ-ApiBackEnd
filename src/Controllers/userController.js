@@ -74,8 +74,21 @@ const registerStaff = (req, res) => {
 };
 
 const logout = (req, res) => {
-	res.clearCookie("access-token"); //clear cookie from the user's browser
-	res.clearCookie("auth-user");
+	if (req.headers.origin) {
+		res.clearCookie("access-token", {
+			domain: "guillaumeblackburn.me",
+			path: "/",
+			secure: true,
+		}); //clear cookie from the user's browser
+		res.clearCookie("auth-user", {
+			domain: "guillaumeblackburn.me",
+			path: "/",
+			secure: true,
+		});
+	} else {
+		res.clearCookie("access-token"); //clear cookie from the user's browser
+		res.clearCookie("auth-user");
+	}
 	res.json({ user: { email: "", role: "" }, success: true });
 };
 
