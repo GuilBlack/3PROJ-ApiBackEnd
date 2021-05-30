@@ -7,6 +7,17 @@ const MenuCategorySchema = new mongoose.Schema({
 		required: true,
 		unique: true,
 	},
+	type: {
+		type: String,
+		enum: [
+			"Appetisers",
+			"Main Course",
+			"Side Dishes",
+			"Desserts",
+			"Drinks",
+		],
+		required: true,
+	},
 	menuItems: [{ type: mongoose.SchemaTypes.ObjectId, ref: "MenuItem" }],
 });
 
