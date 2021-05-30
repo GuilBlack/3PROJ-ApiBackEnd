@@ -1,6 +1,8 @@
 const User = require("../Models/User");
 const jwt = require("jsonwebtoken");
 const passportConfig = require("../auth/passport");
+const MenuItem = require('../Models/MenuItem');
+const mongoose = require('mongoose');
 
 const register = (req, res, role) => {
 	const { email, firstName, lastName, password } = req.body; //extract username and passwd from the req
@@ -82,15 +84,13 @@ const logout = (req, res) => {
 
 const login = (req, res) => {
 	if (req.isAuthenticated()) {
-		const { _id, email, firstName, lastName, role } = req.user;
+		const { _id, email, firstName, lastName, role, balance, cart } = req.user;
 		const token = signToken(_id);
 		res.cookie("access-token", token, {
 			maxAge: 7 * 24 * 60 * 60 * 1000,
-			secure: true,
 		});
 		res.cookie("auth-user", "authenticated!", {
 			maxAge: 7 * 24 * 60 * 60 * 1000,
-			secure: true,
 		}); // cookie that can be read from the web client
 		res.status(200).json({
 			id: _id,
@@ -98,6 +98,8 @@ const login = (req, res) => {
 			firstName: firstName,
 			lastName: lastName,
 			role: role,
+			balance: balance,
+			cart: cart
 		});
 	}
 };
@@ -146,6 +148,53 @@ const signToken = (userID) => {
 	);
 };
 
+const addToCart = (req, res) => {
+    if (req.body.menuItem && req.body.amount > 0) {
+        var menuItem = mongoose.Types.ObjectId(req.body.menuItem);
+
+        MenuItem.findOne({ _id: menuItem }, (err, item) => {
+            if (err)
+                return res.status(500).json({ message: "An error occurred." });
+
+            if (!item)
+                return res
+                    .status(500)
+                    .json({ message: "You chose the wrong dish, fool" });
+
+            let isInCart = false;
+            let index;
+
+            req.user.cart.forEach((e, i) => {
+                if (e.menuItem == req.body.menuItem) {
+                    isInCart = true;
+                    index = i;
+                }
+            });
+            if (isInCart) {
+                req.user.cart[index].amount += Number(req.body.amount);
+            } else
+                req.user.cart.push({
+                    menuItem: { _id: req.body.menuItem },
+                    amount: req.body.amount,
+                });
+
+            req.user.save((err, user) => {
+                if (err)
+                    return res
+                        .status(500)
+                        .json({ message: "Something fucked up." });
+
+                return res.status(200).json(user);
+            });
+        });
+    } else {
+        res.status(400).json({
+            message: "You must provide an id and a valid amount!",
+        });
+    }
+};
+
+
 const dummyRoute = (req, res) => {
 	return res.json({
 		message: 'Authenticated with JWT!'
@@ -166,5 +215,6 @@ module.exports = {
 	listStaff: listStaff,
 	getCustomers: getCustomers,
 	dummyRoute: dummyRoute,
-	dummyPost: dummyPost
+	dummyPost: dummyPost,
+	addToCart: addToCart
 };

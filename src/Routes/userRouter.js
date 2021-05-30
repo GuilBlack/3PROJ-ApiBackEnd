@@ -10,7 +10,8 @@ const {
 	listStaff,
 	getCustomers,
 	dummyRoute,
-	dummyPost
+	dummyPost,
+	addToCart
 } = require("../Controllers/userController");
 
 userRouter.post("/register-customer", registerCustomer);
@@ -38,6 +39,8 @@ userRouter.get(
 	passport.authenticate("jwt", { session: false }), //used to see if the user is authorize
 	listStaff
 );
+
+userRouter.put('/add-to-cart', passport.authenticate("jwt", { session: false }), addToCart);
 
 userRouter.get("/get-customers", passport.authenticate("jwt", { session: false }), getCustomers);
 
