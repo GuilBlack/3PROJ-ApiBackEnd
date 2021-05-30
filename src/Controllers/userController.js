@@ -83,19 +83,11 @@ const login = (req, res) => {
 	if (req.isAuthenticated()) {
 		const { _id, email, firstName, lastName, role } = req.user;
 		const token = signToken(_id);
-		res.cookie("access-token", token, {
-			maxAge: 7 * 24 * 60 * 60 * 1000,
-			httpOnly: true,
-			sameSite: "None",
-			secure: true,
-			domain: "guillaumeblackburn.me",
-		});
-		res.cookie("auth-user", "authenticated!", {
-			maxAge: 7 * 24 * 60 * 60 * 1000,
-			sameSite: "None",
-			secure: true,
-			domain: "guillaumeblackburn.me",
-		}); // cookie that can be read from the web client
+		console.log(req.headers.origin);
+		const cookiesParams = setCookiesOptions(req.headers.origin);
+
+		res.cookie("access-token", token, cookiesParams[0]);
+		res.cookie("auth-user", "authenticated!", cookiesParams[1]); // cookie that can be read from the web client
 		res.status(200).json({
 			id: _id,
 			email: email,
@@ -103,6 +95,29 @@ const login = (req, res) => {
 			lastName: lastName,
 			role: role,
 		});
+	}
+};
+
+const setCookiesOptions = (isFromDomain) => {
+	const params = [
+		{
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+			httpOnly: true,
+			sameSite: "None",
+			secure: true,
+		},
+		{
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+			sameSite: "None",
+			secure: true,
+		},
+	];
+	if (isFromDomain) {
+		params[0].domain = "guillaumeblackburn.me";
+		params[1].domain = "guillaumeblackburn.me";
+		return params;
+	} else {
+		return params;
 	}
 };
 
