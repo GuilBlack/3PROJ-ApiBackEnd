@@ -33,6 +33,7 @@ var limiter = new RateLimit({
 });
 app.use(limiter);
 
+app.enable("trust proxy");
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
