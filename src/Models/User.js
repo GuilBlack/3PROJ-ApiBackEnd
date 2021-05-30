@@ -28,7 +28,19 @@ const UserSchema = new mongoose.Schema({
 	balance: {
 		type: Number,
 	},
-	cart: [{ type: mongoose.Schema.Types.ObjectId, ref: "MenuItem" }],
+	cart: [
+		{
+			menuItem: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "MenuItem",
+				required: true,
+			},
+			amount: {
+				type: Number,
+				required: true,
+			},
+		},
+	],
 });
 
 //happens before saving an instance of this model in the db

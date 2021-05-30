@@ -8,6 +8,8 @@ const {
 	login,
 	logout,
 	listStaff,
+	addToCart,
+	removeItemFromCart,
 } = require("../Controllers/userController");
 
 userRouter.post("/register-customer", registerCustomer);
@@ -34,6 +36,18 @@ userRouter.get(
 	"/list-staff",
 	passport.authenticate("jwt", { session: false }), //used to see if the user is authorize
 	listStaff
+);
+
+userRouter.put(
+	"/add-to-cart",
+	passport.authenticate("jwt", { session: false }), //used to see if the user is authorize
+	addToCart
+);
+
+userRouter.delete(
+	"/delete-item-from-cart",
+	passport.authenticate("jwt", { session: false }), //used to see if the user is authorize
+	removeItemFromCart
 );
 
 module.exports = userRouter;
