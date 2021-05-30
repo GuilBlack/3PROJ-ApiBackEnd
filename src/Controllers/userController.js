@@ -27,6 +27,7 @@ const register = (req, res, role) => {
 				lastName: lastName,
 				password: password,
 				role: role,
+				balance: 0,
 			});
 			//save user
 			newUser.save((err, user) => {
@@ -43,6 +44,8 @@ const register = (req, res, role) => {
 						firstName: firstName,
 						lastName: lastName,
 						role: role,
+						balance: newUser.balance,
+						cart: [],
 					});
 			});
 		}
@@ -107,6 +110,8 @@ const login = (req, res) => {
 			firstName: firstName,
 			lastName: lastName,
 			role: role,
+			balance: req.user.balance,
+			cart: req.user.cart,
 		});
 	}
 };
