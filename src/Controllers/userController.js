@@ -1,5 +1,7 @@
 const User = require("../Models/User");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+const MenuItem = require("../Models/MenuItem");
 const passportConfig = require("../auth/passport");
 const MenuItem = require('../Models/MenuItem');
 const mongoose = require('mongoose');
@@ -29,6 +31,7 @@ const register = (req, res, role) => {
 				lastName: lastName,
 				password: password,
 				role: role,
+				balance: 0,
 			});
 			//save user
 			newUser.save((err, user) => {
@@ -45,6 +48,8 @@ const register = (req, res, role) => {
 						firstName: firstName,
 						lastName: lastName,
 						role: role,
+						balance: newUser.balance,
+						cart: [],
 					});
 				}
 			});
@@ -77,8 +82,21 @@ const registerStaff = (req, res) => {
 };
 
 const logout = (req, res) => {
-	res.clearCookie("access-token"); //clear cookie from the user's browser
-	res.clearCookie("auth-user");
+	if (req.headers.origin) {
+		res.clearCookie("access-token", {
+			domain: "guillaumeblackburn.me",
+			path: "/",
+			secure: true,
+		}); //clear cookie from the user's browser
+		res.clearCookie("auth-user", {
+			domain: "guillaumeblackburn.me",
+			path: "/",
+			secure: true,
+		});
+	} else {
+		res.clearCookie("access-token"); //clear cookie from the user's browser
+		res.clearCookie("auth-user");
+	}
 	res.json({ user: { email: "", role: "" }, success: true });
 };
 
@@ -86,12 +104,10 @@ const login = (req, res) => {
 	if (req.isAuthenticated()) {
 		const { _id, email, firstName, lastName, role, balance, cart } = req.user;
 		const token = signToken(_id);
-		res.cookie("access-token", token, {
-			maxAge: 7 * 24 * 60 * 60 * 1000,
-		});
-		res.cookie("auth-user", "authenticated!", {
-			maxAge: 7 * 24 * 60 * 60 * 1000,
-		}); // cookie that can be read from the web client
+		const cookiesParams = setCookiesOptions(req.headers.origin);
+
+		res.cookie("access-token", token, cookiesParams[0]);
+		res.cookie("auth-user", "authenticated!", cookiesParams[1]); // cookie that can be read from the web client
 		res.status(200).json({
 			id: _id,
 			email: email,
@@ -99,8 +115,31 @@ const login = (req, res) => {
 			lastName: lastName,
 			role: role,
 			balance: balance,
-			cart: cart
+			cart: cart,
 		});
+	}
+};
+
+const setCookiesOptions = (isFromDomain) => {
+	const params = [
+		{
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+			httpOnly: true,
+			sameSite: "None",
+			// secure: true,
+		},
+		{
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+			sameSite: "None",
+			// secure: true,
+		},
+	];
+	if (isFromDomain) {
+		params[0].domain = "guillaumeblackburn.me";
+		params[1].domain = "guillaumeblackburn.me";
+		return params;
+	} else {
+		return params;
 	}
 };
 
@@ -149,63 +188,84 @@ const signToken = (userID) => {
 };
 
 const addToCart = (req, res) => {
-    if (req.body.menuItem && req.body.amount > 0) {
-        var menuItem = mongoose.Types.ObjectId(req.body.menuItem);
+	if (req.body.menuItem && req.body.amount > 0) {
+		var menuItem = mongoose.Types.ObjectId(req.body.menuItem);
 
-        MenuItem.findOne({ _id: menuItem }, (err, item) => {
-            if (err)
-                return res.status(500).json({ message: "An error occurred." });
+		MenuItem.findOne({ _id: menuItem }, (err, item) => {
+			if (err)
+				return res.status(500).json({ message: "An error occurred." });
 
-            if (!item)
-                return res
-                    .status(500)
-                    .json({ message: "You chose the wrong dish, fool" });
+			if (!item)
+				return res
+					.status(500)
+					.json({ message: "You chose the wrong dish, fool" });
 
-            let isInCart = false;
-            let index;
+			let isInCart = false;
+			let index;
 
-            req.user.cart.forEach((e, i) => {
-                if (e.menuItem == req.body.menuItem) {
-                    isInCart = true;
-                    index = i;
-                }
-            });
-            if (isInCart) {
-                req.user.cart[index].amount += Number(req.body.amount);
-            } else
-                req.user.cart.push({
-                    menuItem: { _id: req.body.menuItem },
-                    amount: req.body.amount,
-                });
+			req.user.cart.forEach((e, i) => {
+				if (e.menuItem == req.body.menuItem) {
+					isInCart = true;
+					index = i;
+				}
+			});
+			if (isInCart) {
+				req.user.cart[index].amount += Number(req.body.amount);
+			} else
+				req.user.cart.push({
+					menuItem: { _id: req.body.menuItem },
+					amount: req.body.amount,
+				});
 
-            req.user.save((err, user) => {
-                if (err)
-                    return res
-                        .status(500)
-                        .json({ message: "Something fucked up." });
+			req.user.save((err, user) => {
+				if (err)
+					return res
+						.status(500)
+						.json({ message: "Something fucked up." });
 
-                return res.status(200).json(user);
-            });
-        });
-    } else {
-        res.status(400).json({
-            message: "You must provide an id and a valid amount!",
-        });
-    }
+				return res.status(200).json(user.cart);
+			});
+		});
+	} else {
+		res.status(400).json({
+			message: "You must provide an id and a valid amount!",
+		});
+	}
 };
 
+const removeItemFromCart = (req, res) => {
+	if (req.body.menuItem) {
+		MenuItem.findById(req.body.menuItem, (err, item) => {
+			if (err)
+				return res.status(500).json({ message: "An error occurred." });
 
-const dummyRoute = (req, res) => {
-	return res.json({
-		message: 'Authenticated with JWT!'
-	});
-}
+			if (!item)
+				return res
+					.status(500)
+					.json({ message: "You chose the wrong dish, fool" });
 
-const dummyPost = (req, res) => {
-	return res.json({
-		message: req.body.message
-	});
-}
+			for (i = 0; i < req.user.cart.length; i++) {
+				if (req.user.cart[i].menuItem == req.body.menuItem) {
+					req.user.cart.splice(i, 1);
+					break;
+				}
+			}
+
+			req.user.save((err, user) => {
+				if (err)
+					return res
+						.status(500)
+						.json({ message: "Something fucked up." });
+
+				return res.status(200).json(user.cart);
+			});
+		});
+	} else {
+		res.status(400).json({
+			message: "You must provide an id!",
+		});
+	}
+};
 
 module.exports = {
 	registerCustomer: registerCustomer,
@@ -213,8 +273,6 @@ module.exports = {
 	login: login,
 	logout: logout,
 	listStaff: listStaff,
-	getCustomers: getCustomers,
-	dummyRoute: dummyRoute,
-	dummyPost: dummyPost,
-	addToCart: addToCart
+	addToCart: addToCart,
+	removeItemFromCart: removeItemFromCart,
 };

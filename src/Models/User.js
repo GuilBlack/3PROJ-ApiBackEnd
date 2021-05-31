@@ -29,19 +29,19 @@ const UserSchema = new mongoose.Schema({
 		type: Number,
 		default: 1000
 	},
-	cart: {
-		type: [{
+	cart: [
+		{
 			menuItem: {
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "MenuItem",
-				required: true
+				required: true,
 			},
 			amount: {
 				type: Number,
-				required: true
-			}
-		}]
-	}
+				required: true,
+			},
+		},
+	],
 });
 
 //happens before saving an instance of this model in the db

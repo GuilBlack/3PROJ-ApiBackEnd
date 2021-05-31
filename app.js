@@ -1,7 +1,7 @@
 const express = require("express");
-const cors = require("cors");
 const cookieParser = require("cookie-parser");
 var RateLimit = require("express-rate-limit");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const { dbPassword, dbUsername } = require("./dbUser");
 const { routes } = require("./src/Routes/appRoutes");
@@ -48,17 +48,15 @@ var limiter = new RateLimit({
 });
 app.use(limiter);
 
+app.enable("trust proxy");
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(
-	cors({
-		credentials: true,
-		allowedHeaders: "Content-Type,Authorization",
-		origin: "https://main.d2w06s7g7w0wak.amplifyapp.com",
-	})
+	cors({ credentials: true, origin: "https://admin.guillaumeblackburn.me" })
 );
+
 routes(app);
 
 app.listen(PORT, () => {

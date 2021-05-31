@@ -13,22 +13,29 @@ const addMenuCategory = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized.", msgError: true });
 	else {
-		if (req.body.name) {
+		if (req.body.name && req.body.type) {
 			const menuCategory = new MenuCategory({
 				name: req.body.name,
+				type: req.body.type,
 			});
 			menuCategory.save((err) => {
 				if (err) {
 					if (err.code === 11000) {
 						res.status(400).json({
 							message: "This category already exists.",
-							err: err,
+							msgError: true,
+						});
+					} else if (err.errors.type.properties.type === "enum") {
+						res.status(400).json({
+							message:
+								"choose a type between Appetisers, Main Course, Side Dishes, Desserts or Drinks.",
 							msgError: true,
 						});
 					} else {
 						res.status(500).json({
 							message:
 								"An Error Occured while querying the database.",
+							err: err,
 							msgError: true,
 						});
 					}
@@ -40,7 +47,7 @@ const addMenuCategory = (req, res) => {
 			});
 		} else {
 			res.status(400).json({
-				message: "The name value is missing!",
+				message: "The name or type value is missing!",
 			});
 		}
 	}
@@ -206,8 +213,10 @@ const addMenuItem = (req, res) => {
 
 const getAllCategories = (req, res) => {
 	MenuCategory.find()
+		.sort({ name: -1 })
 		.populate({
 			path: "menuItems",
+			options: { sort: { name: 1 } },
 			populate: {
 				path: "ingredients",
 				populate: {
