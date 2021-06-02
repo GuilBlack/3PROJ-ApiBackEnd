@@ -8,6 +8,7 @@ const {
 	getAllCategories,
 	deleteMenuItem,
 	deleteCategory,
+	getAllMenuItems,
 } = require("../Controllers/menuController");
 
 menuRouter.post(
@@ -26,6 +27,12 @@ menuRouter.get(
 	"/get-all-categories",
 	passport.authenticate("jwt", { session: false }),
 	getAllCategories
+);
+
+menuRouter.get(
+	"/get-all-items",
+	passport.authenticate("jwt", { session: false }),
+	getAllMenuItems
 );
 
 menuRouter.delete(

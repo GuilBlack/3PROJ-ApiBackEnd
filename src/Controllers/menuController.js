@@ -235,6 +235,32 @@ const getAllCategories = (req, res) => {
 		});
 };
 
+const getAllMenuItems = (req, res) => {
+    MenuCategory.find()
+        .sort({ name: -1 })
+        .populate({
+            path: "menuItems",
+            options: { sort: { name: 1 } },
+            populate: {
+                path: "ingredients",
+                populate: {
+                    path: "ingredient",
+                },
+                path: "menuCategory",
+                options: { select: { name: 1, type: 1 } },
+            },
+        })
+        .exec((err, categories) => {
+            if (err)
+                res.status(500).json({
+                    message: "An Error Occured while querying the database.",
+                    err: err,
+                    msgError: true,
+                });
+            else res.status(200).json(categories);
+        });
+};
+
 const deleteMenuItem = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized.", msgError: true });
@@ -383,4 +409,5 @@ module.exports = {
 	getAllCategories: getAllCategories,
 	deleteMenuItem: deleteMenuItem,
 	deleteCategory: deleteCategory,
+	getAllMenuItems: getAllMenuItems
 };

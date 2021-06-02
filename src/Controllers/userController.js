@@ -3,8 +3,6 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const MenuItem = require("../Models/MenuItem");
 const passportConfig = require("../auth/passport");
-const MenuItem = require('../Models/MenuItem');
-const mongoose = require('mongoose');
 
 const register = (req, res, role) => {
 	const { email, firstName, lastName, password } = req.body; //extract username and passwd from the req
