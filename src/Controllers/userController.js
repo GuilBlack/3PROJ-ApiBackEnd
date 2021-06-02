@@ -106,15 +106,24 @@ const login = (req, res) => {
 
 		res.cookie("access-token", token, cookiesParams[0]);
 		res.cookie("auth-user", "authenticated!", cookiesParams[1]); // cookie that can be read from the web client
-		res.status(200).json({
-			id: _id,
-			email: email,
-			firstName: firstName,
-			lastName: lastName,
-			role: role,
-			balance: balance,
-			cart: cart,
-		});
+		User.findById(_id)
+			.populate("cart.menuItem")
+			.exec((err, user) => {
+				if (err)
+					res.status(500).json({
+						message:
+							"There was an error while querying the database",
+					});
+				res.status(200).json({
+					id: _id,
+					email: email,
+					firstName: firstName,
+					lastName: lastName,
+					role: role,
+					balance: req.user.balance,
+					cart: user.cart,
+				});
+			});
 	}
 };
 
@@ -231,6 +240,18 @@ const addToCart = (req, res) => {
 	}
 };
 
+const getCart = (req, res) => {
+	User.findById(req.user._id)
+		.populate("cart.menuItem")
+		.exec((err, user) => {
+			if (err)
+				res.status(500).json({
+					message: "An error occured while querying the database",
+				});
+			else res.status(200).json(user.cart);
+		});
+};
+
 const removeItemFromCart = (req, res) => {
 	if (req.body.menuItem) {
 		MenuItem.findById(req.body.menuItem, (err, item) => {
@@ -273,4 +294,5 @@ module.exports = {
 	listStaff: listStaff,
 	addToCart: addToCart,
 	removeItemFromCart: removeItemFromCart,
+	getCart: getCart,
 };

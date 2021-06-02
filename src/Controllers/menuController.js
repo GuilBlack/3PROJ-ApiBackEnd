@@ -351,52 +351,59 @@ const deleteCategory = (req, res) => {
 							msgError: true,
 						});
 				} else {
-					if (menuCategory) {
-						const params = {
-							Bucket: BUCKET_NAME,
-							Delete: {
-								Objects: [],
-							},
-						};
-						menuCategory.menuItems.forEach((menuItem) => {
-							const objectName = menuItem.imageUrl.substring(
-								menuItem.imageUrl.lastIndexOf("/") + 1
-							);
-							params.Delete.Objects.push({ Key: objectName });
-						});
-						s3.deleteObjects(params, (err, data) => {
-							if (err)
-								res.status(500).json({
-									message:
-										"Couldn't delete image from S3 bucket.",
-									err: err,
-									msgError: true,
-								});
-							else
-								MenuItem.deleteMany(
-									{ menuCategory: menuCategory._id },
-									(err) => {
-										if (err)
-											res.status(500).json({
-												message:
-													"Couldn't delete menu items from db.",
-												err: err,
-												msgError: true,
-											});
-										else
-											res.status(200).json({
-												message:
-													"Successfully deleted category.",
-												msgError: false,
-											});
-									}
-								);
+					if (menuCategory.menuItems.length === 0) {
+						res.status(200).json({
+							message: "Succesfully deleted category.",
+							msgError: false,
 						});
 					} else {
-						res.status(400).json({
-							message: "Couldn't delete the category.",
-							msgError: true,
-						});
+						if (menuCategory) {
+							const params = {
+								Bucket: BUCKET_NAME,
+								Delete: {
+									Objects: [],
+								},
+							};
+							menuCategory.menuItems.forEach((menuItem) => {
+								const objectName = menuItem.imageUrl.substring(
+									menuItem.imageUrl.lastIndexOf("/") + 1
+								);
+								params.Delete.Objects.push({ Key: objectName });
+							});
+							s3.deleteObjects(params, (err, data) => {
+								if (err)
+									res.status(500).json({
+										message:
+											"Couldn't delete image from S3 bucket.",
+										err: err,
+										msgError: true,
+									});
+								else
+									MenuItem.deleteMany(
+										{ menuCategory: menuCategory._id },
+										(err) => {
+											if (err)
+												res.status(500).json({
+													message:
+														"Couldn't delete menu items from db.",
+													err: err,
+													msgError: true,
+												});
+											else
+												res.status(200).json({
+													message:
+														"Successfully deleted category.",
+													msgError: false,
+												});
+										}
+									);
+							});
+						} else {
+							res.status(400).json({
+								message: "Couldn't delete the category.",
+								msgError: true,
+							});
+						}
 					}
 				}
 			});
