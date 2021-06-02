@@ -215,7 +215,18 @@ const addToCart = (req, res) => {
 						.status(500)
 						.json({ message: "Something fucked up." });
 
-				return res.status(200).json(user.cart);
+				User.populate(
+					user,
+					{ path: "cart.menuItem" },
+					(err, newCartUser) => {
+						if (err)
+							res.status(500).json({
+								message:
+									"An error occured while querying the database (try to refresh the page).",
+							});
+						else res.status(200).json(newCartUser.cart);
+					}
+				);
 			});
 		});
 	} else {
@@ -261,7 +272,18 @@ const removeItemFromCart = (req, res) => {
 						.status(500)
 						.json({ message: "Something fucked up." });
 
-				return res.status(200).json(user.cart);
+				User.populate(
+					user,
+					{ path: "cart.menuItem" },
+					(err, newCartUser) => {
+						if (err)
+							res.status(500).json({
+								message:
+									"An error occured while querying the database (try to refresh the page).",
+							});
+						else res.status(200).json(newCartUser.cart);
+					}
+				);
 			});
 		});
 	} else {
