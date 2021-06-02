@@ -36,7 +36,43 @@ const makeTableArrangement = (req, res) => {
 };
 
 const updateTableArrangement = (req, res) => {
-	console.log("TODO: implement this thing...");
+	TableArrangement.findById(
+		"60b7ceb52cb9e61a66acbdb1", //this id needs to be changed depending on the db it's using
+		(err, tableArrangement) => {
+			if (err)
+				res.status(500).json({
+					message: "An error occured while querying the database",
+				});
+
+			if (req.body.layout) {
+				if (req.body.layout.length === 30) {
+					req.body.layout.forEach((table) => {
+						tableArrangement.layout[table.position - 1].hasTable =
+							table.hasTable;
+						tableArrangement.layout[table.position - 1].capacity =
+							table.capacity;
+					});
+					tableArrangement.save((err, newTableArrangement) => {
+						if (err)
+							res.status(500).json({
+								message:
+									"An error occured while querying the db.",
+							});
+						res.status(200).json(newTableArrangement.layout);
+					});
+				} else {
+					res.status(400).json({
+						message:
+							"not all the positions are in the given layout.",
+					});
+				}
+			} else {
+				res.status(400).json({
+					message: "please give a valid layout.",
+				});
+			}
+		}
+	);
 };
 
 module.exports = {
