@@ -37,7 +37,7 @@ const makeTableArrangement = (req, res) => {
 
 const updateTableArrangement = (req, res) => {
 	TableArrangement.findById(
-		"60b7ceb52cb9e61a66acbdb1", //this id needs to be changed depending on the db it's using
+		"60b88ded771257437c18e84a", //this id needs to be changed depending on the db it's using
 		(err, tableArrangement) => {
 			if (err)
 				res.status(500).json({
@@ -75,7 +75,22 @@ const updateTableArrangement = (req, res) => {
 	);
 };
 
+const getTableArrangement = (req, res) => {
+	TableArrangement.findById(
+		"60b88ded771257437c18e84a", //this id needs to be changed depending on the db it's using
+		(err, tableArrangement) => {
+			if (err)
+				res.status(500).json({
+					message: "An error occured while querying the database",
+				});
+
+			res.status(200).json(tableArrangement.layout);
+		}
+	);
+};
+
 module.exports = {
 	makeTableArrangement: makeTableArrangement,
 	updateTableArrangement: updateTableArrangement,
+	getTableArrangement: getTableArrangement,
 };
