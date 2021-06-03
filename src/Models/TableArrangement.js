@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const TableArrangement = new mongoose.Schema({
+const TableArrangementSchema = new mongoose.Schema({
 	layout: [
 		{
 			position: {
@@ -30,3 +30,5 @@ const TableArrangement = new mongoose.Schema({
 		},
 	],
 });
+
+module.exports = mongoose.model("TableArrangement", TableArrangementSchema);
