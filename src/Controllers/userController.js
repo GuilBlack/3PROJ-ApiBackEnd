@@ -99,32 +99,33 @@ const logout = (req, res) => {
 };
 
 const login = (req, res) => {
-	if (req.isAuthenticated()) {
-		const { _id, email, firstName, lastName, role, balance, cart } = req.user;
-		const token = signToken(_id);
-		const cookiesParams = setCookiesOptions(req.headers.origin);
+    if (req.isAuthenticated()) {
+        const { _id, email, firstName, lastName, role } = req.user;
+        const token = signToken(_id);
+        const cookiesParams = setCookiesOptions(req.headers.origin);
 
-		res.cookie("access-token", token, cookiesParams[0]);
-		res.cookie("auth-user", "authenticated!", cookiesParams[1]); // cookie that can be read from the web client
-		User.findById(_id)
-			.populate("cart.menuItem")
-			.exec((err, user) => {
-				if (err)
-					res.status(500).json({
-						message:
-							"There was an error while querying the database",
-					});
-				res.status(200).json({
-					id: _id,
-					email: email,
-					firstName: firstName,
-					lastName: lastName,
-					role: role,
-					balance: req.user.balance,
-					cart: user.cart,
-				});
-			});
-	}
+        res.cookie("access-token", token, cookiesParams[0]);
+        res.cookie("auth-user", "authenticated!", cookiesParams[1]); // cookie that can be read from the web client
+        User.findById(_id)
+            .populate("cart.menuItem")
+            .exec((err, user) => {
+                if (err)
+                    res.status(500).json({
+                        message:
+                            "There was an error while querying the database",
+                        msgError: true,
+                    });
+                res.status(200).json({
+                    id: _id,
+                    email: email,
+                    firstName: firstName,
+                    lastName: lastName,
+                    role: role,
+                    balance: req.user.balance,
+                    cart: user.cart,
+                });
+            });
+    }
 };
 
 const setCookiesOptions = (isFromDomain) => {
@@ -167,20 +168,6 @@ const listStaff = (req, res) => {
 			});
 	}
 };
-
-const getCustomers = (req, res) => {
-	User.find({ role: "customer" })
-	.select("email firstName lastName _id")
-	.exec((err, users) => {
-		if (err)
-			res.status(500).json({
-				message:
-					"An error occured while querying the database.",
-			});
-
-		res.status(200).json(users);
-	});
-}
 
 const signToken = (userID) => {
 	//setting up the jwt token
