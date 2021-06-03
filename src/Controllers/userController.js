@@ -215,7 +215,18 @@ const addToCart = (req, res) => {
 						.status(500)
 						.json({ message: "Something fucked up." });
 
-				return res.status(200).json(user.cart);
+				User.populate(
+					user,
+					{ path: "cart.menuItem" },
+					(err, newCartUser) => {
+						if (err)
+							res.status(500).json({
+								message:
+									"An error occured while querying the database (try to refresh the page).",
+							});
+						else res.status(200).json(newCartUser.cart);
+					}
+				);
 			});
 		});
 	} else {
@@ -261,7 +272,66 @@ const removeItemFromCart = (req, res) => {
 						.status(500)
 						.json({ message: "Something fucked up." });
 
-				return res.status(200).json(user.cart);
+				User.populate(
+					user,
+					{ path: "cart.menuItem" },
+					(err, newCartUser) => {
+						if (err)
+							res.status(500).json({
+								message:
+									"An error occured while querying the database (try to refresh the page).",
+							});
+						else res.status(200).json(newCartUser.cart);
+					}
+				);
+			});
+		});
+	} else {
+		res.status(400).json({
+			message: "You must provide an id!",
+		});
+	}
+};
+
+const removeAmountFromCart = (req, res) => {
+	if (req.body.menuItem) {
+		MenuItem.findById(req.body.menuItem, (err, item) => {
+			if (err)
+				return res.status(500).json({ message: "An error occurred." });
+
+			if (!item)
+				return res
+					.status(500)
+					.json({ message: "You chose the wrong dish, fool" });
+
+			for (i = 0; i < req.user.cart.length; i++) {
+				if (req.user.cart[i].menuItem == req.body.menuItem) {
+					req.user.cart[i].amount -= req.body.amount;
+					if (req.user.cart[i].amount <= 0) {
+						req.user.cart.splice(i, 1);
+					}
+					break;
+				}
+			}
+
+			req.user.save((err, user) => {
+				if (err)
+					return res
+						.status(500)
+						.json({ message: "Something fucked up." });
+
+				User.populate(
+					user,
+					{ path: "cart.menuItem" },
+					(err, newCartUser) => {
+						if (err)
+							res.status(500).json({
+								message:
+									"An error occured while querying the database (try to refresh the page).",
+							});
+						else res.status(200).json(newCartUser.cart);
+					}
+				);
 			});
 		});
 	} else {
@@ -280,4 +350,5 @@ module.exports = {
 	addToCart: addToCart,
 	removeItemFromCart: removeItemFromCart,
 	getCart: getCart,
+	removeAmountFromCart: removeAmountFromCart,
 };
