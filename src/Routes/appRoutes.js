@@ -2,6 +2,7 @@ const userRouter = require("./userRouter");
 const ingredientRouter = require("./ingredientRouter");
 const menuRouter = require("./menuRouter");
 const tableRouter = require("./tableRoute");
+const reservationRouter = require("./reservationRouter");
 
 //routing system for user and city
 module.exports = {
@@ -15,5 +16,6 @@ module.exports = {
 		app.use("/ingredient", ingredientRouter);
 		app.use("/menu", menuRouter);
 		app.use("/table", tableRouter);
+		app.use("/reservation", reservationRouter);
 	},
 };
