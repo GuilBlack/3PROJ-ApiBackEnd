@@ -5,6 +5,7 @@ const tableRouter = express.Router();
 const {
 	makeTableArrangement,
 	updateTableArrangement,
+	getTableArrangement,
 } = require("../Controllers/tableController");
 
 tableRouter.post(
@@ -17,6 +18,12 @@ tableRouter.put(
 	"/update-arrangement",
 	passport.authenticate("jwt", { session: false }),
 	updateTableArrangement
+);
+
+tableRouter.get(
+	"/get-arrangement",
+	passport.authenticate("jwt", { session: false }),
+	getTableArrangement
 );
 
 module.exports = tableRouter;
