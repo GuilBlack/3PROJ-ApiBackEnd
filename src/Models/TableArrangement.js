@@ -18,8 +18,8 @@ const TableArrangementSchema = new mongoose.Schema({
 			reservations: [
 				{
 					customer: {
-						type: mongoose.Schema.Types.ObjectId,
-						ref: "User",
+						type: String,
+						require: true,
 					},
 					isReserved: {
 						type: Boolean,
