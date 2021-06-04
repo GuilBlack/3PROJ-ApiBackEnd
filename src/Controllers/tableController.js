@@ -6,7 +6,7 @@ const makeTableArrangement = (req, res) => {
 		const table = {
 			position: i + 1,
 			hasTable: false,
-			capacity: 4,
+			capacity: 0,
 			reservations: [
 				{
 					customer: null,
