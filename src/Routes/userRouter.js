@@ -11,7 +11,7 @@ const {
 	addToCart,
 	removeItemFromCart,
 	getCart,
-	removeAmountFromCart,
+	editAmountInCart,
 } = require("../Controllers/userController");
 
 userRouter.post("/register-customer", registerCustomer);
@@ -59,9 +59,9 @@ userRouter.get(
 );
 
 userRouter.put(
-	"/remove-amount-from-cart",
+	"/edit-amount-in-cart",
 	passport.authenticate("jwt", { session: false }), //used to see if the user is authorize
-	removeAmountFromCart
+	editAmountInCart
 );
 
 module.exports = userRouter;

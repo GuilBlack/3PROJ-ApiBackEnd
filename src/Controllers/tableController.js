@@ -36,9 +36,8 @@ const makeTableArrangement = (req, res) => {
 };
 
 const updateTableArrangement = (req, res) => {
-	TableArrangement.findById(
-		"60b88ded771257437c18e84a", //this id needs to be changed depending on the db it's using
-		(err, tableArrangement) => {
+	if (req.user.role === "admin") {
+		TableArrangement.findOne().exec((err, tableArrangement) => {
 			if (err)
 				res.status(500).json({
 					message: "An error occured while querying the database",
@@ -71,22 +70,21 @@ const updateTableArrangement = (req, res) => {
 					message: "please give a valid layout.",
 				});
 			}
-		}
-	);
+		});
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
 };
 
 const getTableArrangement = (req, res) => {
-	TableArrangement.findById(
-		"60b88ded771257437c18e84a", //this id needs to be changed depending on the db it's using
-		(err, tableArrangement) => {
-			if (err)
-				res.status(500).json({
-					message: "An error occured while querying the database",
-				});
+	TableArrangement.findOne().exec((err, tableArrangement) => {
+		if (err)
+			res.status(500).json({
+				message: "An error occured while querying the database",
+			});
 
-			res.status(200).json(tableArrangement.layout);
-		}
-	);
+		res.status(200).json(tableArrangement.layout);
+	});
 };
 
 module.exports = {
