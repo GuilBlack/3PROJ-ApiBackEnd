@@ -4,54 +4,74 @@ const makeReservation = (req, res) => {
 	TableArrangement.findOne().exec((err, tableArrangement) => {
 		if (err)
 			res.status(500).json({
-				message:
-					"S-Sowwy... database-chan ha-has a lil' pwoblem. UwU 👉👈",
+				message: "Can't connect to the database.",
 			});
+		else {
+			let email;
+			let checkEmail = false;
 
-		let email;
-
-		if (req.user.role === "waiter") {
-			if (req.body.email) {
-				email = req.body.email;
-			} else {
-				res.status(400).json({
-					message: "Where is the email ma dude?",
-				});
-			}
-		} else {
-			email = req.user.email;
-		}
-
-		if (req.body.timeSlot && req.body.seats) {
-			let freeTables = [];
-
-			tableArrangement.layout.forEach((table) => {
-				if (
-					!table.reservations[req.body.timeSlot - 1].isReserved &&
-					table.hasTable
-				) {
-					freeTables.push(table);
+			if (req.user.role === "waiter") {
+				if (req.body.email) {
+					email = req.body.email;
+					checkEmail = true;
+				} else {
+					res.status(400).json({
+						message: "Where is the email ma dude?",
+					});
 				}
-			});
+			} else if (req.user.role === "customer") {
+				email = req.user.email;
+				checkEmail = true;
+			} else {
+				res.status(401).json(
+					"You must be either a customer or a waiter."
+				);
+			}
 
-			freeTables.sort((a, b) => {
-				return Number(a.capacity) - Number(b.capacity);
-			});
+			if (req.body.timeSlot && req.body.seats && checkEmail) {
+				let freeTables = [];
 
-			let reservedTables = recursiveShit(
-				freeTables,
-				req.body.timeSlot,
-				req.body.seats,
-				[]
-			);
+				tableArrangement.layout.forEach((table) => {
+					if (
+						!table.reservations[req.body.timeSlot - 1].isReserved &&
+						table.hasTable
+					) {
+						freeTables.push(table);
+					}
+				});
 
-			reservedTables.forEach((table) => {
-				table.reservations[req.body.timeSlot - 1].isReserved = true;
-			});
-			console.log(reservedTables);
-			res.status(200).json(tableArrangement.layout);
-		} else {
-			res.status(400), json({ message: "Something is missing..." });
+				freeTables.sort((a, b) => {
+					return Number(a.capacity) - Number(b.capacity);
+				});
+
+				let reservedTables = recursiveShit(
+					freeTables,
+					req.body.timeSlot,
+					req.body.seats,
+					[]
+				);
+
+				reservedTables.forEach((table) => {
+					table.reservations[req.body.timeSlot - 1].customer = email;
+					table.reservations[req.body.timeSlot - 1].isReserved = true;
+				});
+
+				tableArrangement.save((err, doc) => {
+					if (err)
+						res.status(500).json({
+							message:
+								"Couldn't make reservation due to a problem with the db.",
+						});
+					else {
+						res.status(200).json(reservedTables);
+					}
+				});
+			} else {
+				if (checkEmail) {
+					res.status(400),
+						json({ message: "Something is missing..." });
+				}
+			}
 		}
 	});
 };
@@ -100,6 +120,56 @@ function recursiveShit(freeTables, timeSlot, seats, reservedTables) {
 	}
 }
 
+const getUserReservations = (req, res) => {
+	if (req.user.role === "customer") {
+		TableArrangement.findOne().exec((err, tableArrangement) => {
+			if (err) {
+				res.status(500).json({
+					message: "Can't connect to the database.",
+				});
+			} else {
+				let reservedTables = [];
+				tableArrangement.layout.forEach((table) => {
+					if (table.hasTable === true) {
+						table.reservations.forEach((reservation, i) => {
+							if (reservation.customer === req.user.email) {
+								reservedTables.push(table);
+							}
+						});
+					}
+				});
+				res.status(200).json(reservedTables);
+			}
+		});
+	} else {
+		res.status(500).json({ message: "you must be a customer." });
+	}
+};
+
+const getAllReservations = (req, res) => {
+	if (req.user.role === "waiter") {
+		TableArrangement.findOne().exec((err, tableArrangement) => {
+			if (err) {
+				res.status(500).json({
+					message: "Can't connect to the database.",
+				});
+			} else {
+				let reservedTables = [];
+				tableArrangement.layout.forEach((table) => {
+					if (table.hasTable === true) {
+						reservedTables.push(table);
+					}
+				});
+				res.status(200).json(reservedTables);
+			}
+		});
+	} else {
+		res.status(401).json({ message: "You must be a waiter." });
+	}
+};
+
 module.exports = {
 	makeReservation: makeReservation,
+	getUserReservations: getUserReservations,
+	getAllReservations: getAllReservations,
 };
