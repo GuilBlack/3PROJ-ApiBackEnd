@@ -1,10 +1,12 @@
 const express = require("express");
+const cron = require("node-cron");
 const cookieParser = require("cookie-parser");
 var RateLimit = require("express-rate-limit");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const { dbPassword, dbUsername } = require("./dbUser");
 const { routes } = require("./src/Routes/appRoutes");
+const { resetReservations } = require("./src/scheduledTasks/reservationsTasks");
 
 const app = express();
 const PORT = process.env.PORT || 6969;
@@ -30,6 +32,10 @@ mongoose.connect(
 	}
 );
 
+cron.schedule("0 0 * * *", () => {
+	resetReservations();
+});
+
 var limiter = new RateLimit({
 	windowMs: 60 * 1000, // 1 minutes
 	max: 100, // limit each IP to 200 requests per windowMs
@@ -42,9 +48,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use(
-	cors({ credentials: true, origin: "https://admin.guillaumeblackburn.me" })
-);
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 
 routes(app);
 
