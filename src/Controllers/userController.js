@@ -293,7 +293,7 @@ const removeItemFromCart = (req, res) => {
 	}
 };
 
-const removeAmountFromCart = (req, res) => {
+const editAmountFromCart = (req, res) => {
 	if (req.body.menuItem) {
 		MenuItem.findById(req.body.menuItem, (err, item) => {
 			if (err)
@@ -306,7 +306,7 @@ const removeAmountFromCart = (req, res) => {
 
 			for (i = 0; i < req.user.cart.length; i++) {
 				if (req.user.cart[i].menuItem == req.body.menuItem) {
-					req.user.cart[i].amount -= req.body.amount;
+					req.user.cart[i].amount = req.body.amount;
 					if (req.user.cart[i].amount <= 0) {
 						req.user.cart.splice(i, 1);
 					}
@@ -350,5 +350,5 @@ module.exports = {
 	addToCart: addToCart,
 	removeItemFromCart: removeItemFromCart,
 	getCart: getCart,
-	removeAmountFromCart: removeAmountFromCart,
+	editAmountFromCart: editAmountFromCart,
 };
