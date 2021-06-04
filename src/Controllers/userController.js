@@ -293,7 +293,7 @@ const removeItemFromCart = (req, res) => {
 	}
 };
 
-const editAmountFromCart = (req, res) => {
+const editAmountInCart = (req, res) => {
 	if (req.body.menuItem) {
 		MenuItem.findById(req.body.menuItem, (err, item) => {
 			if (err)
@@ -350,5 +350,5 @@ module.exports = {
 	addToCart: addToCart,
 	removeItemFromCart: removeItemFromCart,
 	getCart: getCart,
-	editAmountFromCart: editAmountFromCart,
+	editAmountInCart: editAmountInCart,
 };
