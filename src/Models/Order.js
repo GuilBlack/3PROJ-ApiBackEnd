@@ -15,6 +15,7 @@ const OrderSchema = new mongoose.Schema({
 			preparing: {
 				type: Boolean,
 				required: true,
+				default: false,
 			},
 			cost: {
 				type: Number,
@@ -26,33 +27,26 @@ const OrderSchema = new mongoose.Schema({
 		type: Number,
 		required: true,
 	},
-	status: {
-		type: String,
-		enum: ["Pending", "Preparing", "Ready"],
-		required: true,
-	},
 	pending: {
 		type: Boolean,
 		required: true,
+		default: true,
 	},
 	paid: {
 		type: Boolean,
 		required: true,
+		default: false,
 	},
-	location: {
+	onSpot: {
+		type: Boolean,
+		required: true,
+	},
+	preferences: {
 		type: String,
-		enum: ["On the spot", "Takeaway"],
-	},
-	table: {
-		type: Number,
 	},
 	customer: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "User",
-	},
-	waiter: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "User",
+		type: String,
+		required: true,
 	},
 	tip: {
 		type: Number,
