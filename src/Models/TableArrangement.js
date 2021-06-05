@@ -25,6 +25,9 @@ const TableArrangementSchema = new mongoose.Schema({
 						type: Boolean,
 						required: true,
 					},
+					totalNumberOfPeople: {
+						type: Number,
+					},
 				},
 			],
 		},

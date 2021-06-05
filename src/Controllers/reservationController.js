@@ -54,6 +54,9 @@ const makeReservation = (req, res) => {
 				reservedTables.forEach((table) => {
 					table.reservations[req.body.timeSlot - 1].customer = email;
 					table.reservations[req.body.timeSlot - 1].isReserved = true;
+					table.reservations[
+						req.body.timeSlot - 1
+					].totalNumberOfPeople = req.body.seats;
 				});
 
 				tableArrangement.save((err, doc) => {
@@ -63,7 +66,32 @@ const makeReservation = (req, res) => {
 								"Couldn't make reservation due to a problem with the db.",
 						});
 					else {
-						res.status(200).json(reservedTables);
+						let reservedTablesForUser = [];
+
+						for (i = 0; i < 4; i++) {
+							let timeSlot = {
+								timeSlot: i + 1,
+								totalNumberOfPeople: null,
+								tables: [],
+							};
+							doc.layout.forEach((table) => {
+								if (table.hasTable === true) {
+									if (
+										table.reservations[i].customer === email
+									) {
+										timeSlot.tables.push(table.position);
+										timeSlot.totalNumberOfPeople =
+											table.reservations[
+												i
+											].totalNumberOfPeople;
+									}
+								}
+							});
+							if (timeSlot.tables.length > 0) {
+								reservedTablesForUser.push(timeSlot);
+							}
+						}
+						res.status(200).json(reservedTablesForUser);
 					}
 				});
 			} else {
@@ -128,17 +156,31 @@ const getUserReservations = (req, res) => {
 					message: "Can't connect to the database.",
 				});
 			} else {
-				let reservedTables = [];
-				tableArrangement.layout.forEach((table) => {
-					if (table.hasTable === true) {
-						table.reservations.forEach((reservation, i) => {
-							if (reservation.customer === req.user.email) {
-								reservedTables.push(table);
+				let reservedTablesForUser = [];
+
+				for (i = 0; i < 4; i++) {
+					let timeSlot = {
+						timeSlot: i + 1,
+						totalNumberOfPeople: null,
+						tables: [],
+					};
+					tableArrangement.layout.forEach((table) => {
+						if (table.hasTable === true) {
+							if (
+								table.reservations[i].customer ===
+								req.user.email
+							) {
+								timeSlot.tables.push(table.position);
+								timeSlot.totalNumberOfPeople =
+									table.reservations[i].totalNumberOfPeople;
 							}
-						});
+						}
+					});
+					if (timeSlot.tables.length > 0) {
+						reservedTablesForUser.push(timeSlot);
 					}
-				});
-				res.status(200).json(reservedTables);
+				}
+				res.status(200).json(reservedTablesForUser);
 			}
 		});
 	} else {

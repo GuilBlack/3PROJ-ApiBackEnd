@@ -11,6 +11,7 @@ const resetReservations = () => {
 			table.reservations.forEach((reservation) => {
 				reservation.customer = null;
 				reservation.isReserved = false;
+				reservation.totalNumberOfPeople = 0;
 			});
 		});
 
