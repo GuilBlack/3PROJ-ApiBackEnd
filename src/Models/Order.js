@@ -37,9 +37,22 @@ const OrderSchema = new mongoose.Schema({
 		required: true,
 		default: false,
 	},
+	delivered: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
+	cancelled: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
 	onSpot: {
 		type: Boolean,
 		required: true,
+	},
+	message: {
+		type: String,
 	},
 	preferences: {
 		type: String,
