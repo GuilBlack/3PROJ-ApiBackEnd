@@ -8,11 +8,11 @@ const {
 	getTableArrangement,
 } = require("../Controllers/tableController");
 
-// tableRouter.post(
-// 	"/make-arrangement",
-// 	passport.authenticate("jwt", { session: false }),
-// 	makeTableArrangement
-// );
+tableRouter.post(
+	"/make-arrangement",
+	passport.authenticate("jwt", { session: false }),
+	makeTableArrangement
+);
 
 tableRouter.put(
 	"/update-arrangement",

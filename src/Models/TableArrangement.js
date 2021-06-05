@@ -19,7 +19,7 @@ const TableArrangementSchema = new mongoose.Schema({
 				{
 					customer: {
 						type: String,
-						require: true,
+						required: true,
 					},
 					isReserved: {
 						type: Boolean,
