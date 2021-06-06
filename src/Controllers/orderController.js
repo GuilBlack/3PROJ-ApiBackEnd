@@ -100,7 +100,6 @@ const confirmOrder = (req, res) => {
 							});
 						} else {
 							if (order) {
-								//TODO: we need to be able to remove some stock
 								let ingredients = [];
 								order.items.forEach((item) => {
 									item.menuItem.ingredients.forEach(
@@ -150,6 +149,7 @@ const confirmOrder = (req, res) => {
 								}
 								if (confirmStock) {
 									order.pending = false;
+									order.message = req.body.message;
 									order.items.forEach((item) => {
 										item.preparing = true;
 									});
@@ -195,18 +195,33 @@ const confirmOrder = (req, res) => {
 						}
 					});
 			} else {
-				Order.findByIdAndDelete(req.body.orderId, (err, doc) => {
+				Order.findById(req.body.orderId).exec((err, order) => {
 					if (err) {
 						res.status(500).json({
 							message:
 								"An error occured while querying the database.",
 						});
 					} else {
-						if (doc) {
-							res.status(200).json({ message: "Order deleted." });
+						if (order) {
+							order.cancelled = true;
+							order.pending = false;
+							order.message = req.body.message;
+
+							order.save((err, cancelledOrder) => {
+								if (err) {
+									res.status(500).json({
+										message:
+											"An error occured while querying the database.",
+									});
+								} else {
+									res.status(200).json({
+										message: "Order cancelled.",
+									});
+								}
+							});
 						} else {
 							res.status(400).json({
-								message: "Couldn't deleted the given order.",
+								message: "Couldn't cancel the given order.",
 							});
 						}
 					}
@@ -224,6 +239,7 @@ const getUserOrders = (req, res) => {
 	if (req.user.role === "customer") {
 		Order.find({ customer: req.user.email })
 			.populate({ path: "items", populate: { path: "menuItem" } })
+			.sort({ createdAt: -1 })
 			.exec((err, orders) => {
 				if (err)
 					res.status(500).json({
@@ -236,8 +252,95 @@ const getUserOrders = (req, res) => {
 	}
 };
 
+const getOrdersForWaiters = (req, res) => {
+	if (req.user.role === "waiter") {
+		Order.find({
+			$and: [
+				{
+					$or: [{ paid: false }, { delivered: false }],
+				},
+				{ cancelled: false },
+			],
+		})
+			.populate({ path: "items", populate: { path: "menuItem" } })
+			.sort({ createdAt: -1 })
+			.exec((err, orders) => {
+				if (err)
+					res.status(500).json({
+						message: "Something went wrong with the database...",
+					});
+				else res.status(200).json(orders);
+			});
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
+};
+
+const getOrdersForCooks = (req, res) => {
+	if (req.user.role === "cook" || req.user.role === "barman") {
+		Order.find({ "items.preparing": true, pending: false })
+			.populate("items.menuItem")
+			.sort({ createdAt: -1 })
+			.exec((err, orders) => {
+				if (err) {
+					res.status(500).json({
+						message:
+							"An error occured while querying the database.",
+					});
+				} else {
+					res.status(200).json(orders);
+				}
+			});
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
+};
+
+const markItemAsPrepared = (req, res) => {
+	if (req.user.role === "cook" || req.user.role === "barman") {
+		if (req.body.itemId || req.body.orderId) {
+			Order.findById(req.body.orderId, (err, order) => {
+				if (err) {
+					res.status(500).json({
+						message:
+							"An error occured while querying the database.",
+					});
+				} else {
+					const index = order.items.findIndex((item) => {
+						return item._id == req.body.itemId;
+					});
+					if (index === -1) {
+						res.status(400).json({
+							message: "Couldn't find the item.",
+						});
+					} else {
+						order.items[index].preparing = false;
+						order.save((err, newOrder) => {
+							if (err) {
+								res.status(500).json({
+									message:
+										"An error occured while querying the database.",
+								});
+							} else {
+								res.status(200).json(newOrder);
+							}
+						});
+					}
+				}
+			});
+		} else {
+			res.status(400).json({ message: "A value is missing!" });
+		}
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
+};
+
 module.exports = {
 	checkout: checkout,
 	confirmOrder: confirmOrder,
 	getUserOrders: getUserOrders,
+	getOrdersForWaiters: getOrdersForWaiters,
+	getOrdersForCooks: getOrdersForCooks,
+	markItemAsPrepared: markItemAsPrepared,
 };

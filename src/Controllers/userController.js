@@ -204,10 +204,19 @@ const addToCart = (req, res) => {
 				}
 			});
 			if (isInCart) {
-				if (req.user.cart[index].amount += Number(req.body.amount) > 10){
-					return res.status(400).json({ message: "You can't add more than 10 of an item to your cart!"});
+				if (
+					req.user.cart[index].amount + Number(req.body.amount) >
+					10
+				) {
+					return res
+						.status(400)
+						.json({
+							message:
+								"You can't add more than 10 of an item to your cart!",
+						});
+				} else {
+					req.user.cart[index].amount += Number(req.body.amount);
 				}
-				req.user.cart[index].amount += Number(req.body.amount);
 			} else
 				req.user.cart.push({
 					menuItem: { _id: req.body.menuItem },
