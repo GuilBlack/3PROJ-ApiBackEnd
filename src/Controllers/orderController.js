@@ -220,7 +220,24 @@ const confirmOrder = (req, res) => {
 	}
 };
 
+const getUserOrders = (req, res) => {
+	if (req.user.role === "customer") {
+		Order.find({ customer: req.user.email })
+			.populate({ path: "items", populate: { path: "menuItem" } })
+			.exec((err, orders) => {
+				if (err)
+					res.status(500).json({
+						message: "Something went wrong with the database...",
+					});
+				else res.status(200).json(orders);
+			});
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
+};
+
 module.exports = {
 	checkout: checkout,
 	confirmOrder: confirmOrder,
+	getUserOrders: getUserOrders,
 };
