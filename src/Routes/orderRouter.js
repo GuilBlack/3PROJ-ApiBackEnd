@@ -6,6 +6,7 @@ const {
 	checkout,
 	confirmOrder,
 	getUserOrders,
+	getOrdersForWaiters,
 } = require("../Controllers/orderController");
 
 orderRouter.post(
@@ -24,6 +25,12 @@ orderRouter.get(
 	"/get-for-user",
 	passport.authenticate("jwt", { session: false }),
 	getUserOrders
+);
+
+orderRouter.get(
+	"/get-for-waiter",
+	passport.authenticate("jwt", { session: false }),
+	getOrdersForWaiters
 );
 
 module.exports = orderRouter;

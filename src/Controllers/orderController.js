@@ -150,6 +150,7 @@ const confirmOrder = (req, res) => {
 								}
 								if (confirmStock) {
 									order.pending = false;
+									order.message = req.body.message;
 									order.items.forEach((item) => {
 										item.preparing = true;
 									});
@@ -195,18 +196,33 @@ const confirmOrder = (req, res) => {
 						}
 					});
 			} else {
-				Order.findByIdAndDelete(req.body.orderId, (err, doc) => {
+				Order.findById(req.body.orderId).exec((err, order) => {
 					if (err) {
 						res.status(500).json({
 							message:
 								"An error occured while querying the database.",
 						});
 					} else {
-						if (doc) {
-							res.status(200).json({ message: "Order deleted." });
+						if (order) {
+							order.cancelled = true;
+							order.pending = false;
+							order.message = req.body.message;
+
+							order.save((err, cancelledOrder) => {
+								if (err) {
+									res.status(500).json({
+										message:
+											"An error occured while querying the database.",
+									});
+								} else {
+									res.status(200).json({
+										message: "Order cancelled.",
+									});
+								}
+							});
 						} else {
 							res.status(400).json({
-								message: "Couldn't deleted the given order.",
+								message: "Couldn't cancel the given order.",
 							});
 						}
 					}
@@ -224,6 +240,31 @@ const getUserOrders = (req, res) => {
 	if (req.user.role === "customer") {
 		Order.find({ customer: req.user.email })
 			.populate({ path: "items", populate: { path: "menuItem" } })
+			.sort({ createdAt: -1 })
+			.exec((err, orders) => {
+				if (err)
+					res.status(500).json({
+						message: "Something went wrong with the database...",
+					});
+				else res.status(200).json(orders);
+			});
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
+};
+
+const getOrdersForWaiters = (req, res) => {
+	if (req.user.role === "waiter") {
+		Order.find({
+			$and: [
+				{
+					$or: [{ paid: false }, { delivered: false }],
+				},
+				{ cancelled: false },
+			],
+		})
+			.populate({ path: "items", populate: { path: "menuItem" } })
+			.sort({ createdAt: -1 })
 			.exec((err, orders) => {
 				if (err)
 					res.status(500).json({
@@ -240,4 +281,5 @@ module.exports = {
 	checkout: checkout,
 	confirmOrder: confirmOrder,
 	getUserOrders: getUserOrders,
+	getOrdersForWaiters: getOrdersForWaiters,
 };
