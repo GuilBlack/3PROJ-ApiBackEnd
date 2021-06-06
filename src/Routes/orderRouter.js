@@ -9,6 +9,8 @@ const {
 	getOrdersForWaiters,
 	getOrdersForCooks,
 	markItemAsPrepared,
+	checkoutForWaiter,
+	markAsDelivered,
 } = require("../Controllers/orderController");
 
 orderRouter.post(
@@ -18,9 +20,21 @@ orderRouter.post(
 );
 
 orderRouter.post(
+	"/checkout-for-waiter",
+	passport.authenticate("jwt", { session: false }),
+	checkoutForWaiter
+);
+
+orderRouter.put(
 	"/confirm",
 	passport.authenticate("jwt", { session: false }),
 	confirmOrder
+);
+
+orderRouter.put(
+	"/mark-as-delivered",
+	passport.authenticate("jwt", { session: false }),
+	markAsDelivered
 );
 
 orderRouter.get(
