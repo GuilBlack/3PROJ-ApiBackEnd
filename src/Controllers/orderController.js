@@ -100,7 +100,6 @@ const confirmOrder = (req, res) => {
 							});
 						} else {
 							if (order) {
-								//TODO: we need to be able to remove some stock
 								let ingredients = [];
 								order.items.forEach((item) => {
 									item.menuItem.ingredients.forEach(
@@ -277,9 +276,71 @@ const getOrdersForWaiters = (req, res) => {
 	}
 };
 
+const getOrdersForCooks = (req, res) => {
+	if (req.user.role === "cook" || req.user.role === "barman") {
+		Order.find({ "items.preparing": true, pending: false })
+			.populate("items.menuItem")
+			.sort({ createdAt: -1 })
+			.exec((err, orders) => {
+				if (err) {
+					res.status(500).json({
+						message:
+							"An error occured while querying the database.",
+					});
+				} else {
+					res.status(200).json(orders);
+				}
+			});
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
+};
+
+const markItemAsPrepared = (req, res) => {
+	if (req.user.role === "cook" || req.user.role === "barman") {
+		if (req.body.itemId || req.body.orderId) {
+			Order.findById(req.body.orderId, (err, order) => {
+				if (err) {
+					res.status(500).json({
+						message:
+							"An error occured while querying the database.",
+					});
+				} else {
+					const index = order.items.findIndex((item) => {
+						return item._id == req.body.itemId;
+					});
+					if (index === -1) {
+						res.status(400).json({
+							message: "Couldn't find the item.",
+						});
+					} else {
+						order.items[index].preparing = false;
+						order.save((err, newOrder) => {
+							if (err) {
+								res.status(500).json({
+									message:
+										"An error occured while querying the database.",
+								});
+							} else {
+								res.status(200).json(newOrder);
+							}
+						});
+					}
+				}
+			});
+		} else {
+			res.status(400).json({ message: "A value is missing!" });
+		}
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
+};
+
 module.exports = {
 	checkout: checkout,
 	confirmOrder: confirmOrder,
 	getUserOrders: getUserOrders,
 	getOrdersForWaiters: getOrdersForWaiters,
+	getOrdersForCooks: getOrdersForCooks,
+	markItemAsPrepared: markItemAsPrepared,
 };
