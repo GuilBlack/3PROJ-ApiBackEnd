@@ -204,6 +204,9 @@ const addToCart = (req, res) => {
 				}
 			});
 			if (isInCart) {
+				if (req.user.cart[index].amount += Number(req.body.amount) > 10){
+					return res.status(400).json({ message: "You can't add more than 10 of an item to your cart!"});
+				}
 				req.user.cart[index].amount += Number(req.body.amount);
 			} else
 				req.user.cart.push({
