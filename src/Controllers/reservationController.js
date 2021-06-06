@@ -69,55 +69,61 @@ const makeReservation = (req, res) => {
 						[]
 					);
 
-					reservedTables.forEach((table) => {
-						table.reservations[req.body.timeSlot - 1].customer =
-							email;
-						table.reservations[
-							req.body.timeSlot - 1
-						].isReserved = true;
-						table.reservations[
-							req.body.timeSlot - 1
-						].totalNumberOfPeople = req.body.seats;
-					});
+					if (reservedTables.length > 0) {
+						reservedTables.forEach((table) => {
+							table.reservations[req.body.timeSlot - 1].customer =
+								email;
+							table.reservations[
+								req.body.timeSlot - 1
+							].isReserved = true;
+							table.reservations[
+								req.body.timeSlot - 1
+							].totalNumberOfPeople = req.body.seats;
+						});
 
-					tableArrangement.save((err, doc) => {
-						if (err)
-							res.status(500).json({
-								message:
-									"Couldn't make reservation due to a problem with the db.",
-							});
-						else {
-							let reservedTablesForUser = [];
-
-							for (i = 0; i < 4; i++) {
-								let timeSlot = {
-									timeSlot: i + 1,
-									totalNumberOfPeople: null,
-									tables: [],
-								};
-								doc.layout.forEach((table) => {
-									if (table.hasTable === true) {
-										if (
-											table.reservations[i].customer ===
-											email
-										) {
-											timeSlot.tables.push(
-												table.position
-											);
-											timeSlot.totalNumberOfPeople =
-												table.reservations[
-													i
-												].totalNumberOfPeople;
-										}
-									}
+						tableArrangement.save((err, doc) => {
+							if (err)
+								res.status(500).json({
+									message:
+										"Couldn't make reservation due to a problem with the db.",
 								});
-								if (timeSlot.tables.length > 0) {
-									reservedTablesForUser.push(timeSlot);
+							else {
+								let reservedTablesForUser = [];
+
+								for (i = 0; i < 4; i++) {
+									let timeSlot = {
+										timeSlot: i + 1,
+										totalNumberOfPeople: null,
+										tables: [],
+									};
+									doc.layout.forEach((table) => {
+										if (table.hasTable === true) {
+											if (
+												table.reservations[i]
+													.customer === email
+											) {
+												timeSlot.tables.push(
+													table.position
+												);
+												timeSlot.totalNumberOfPeople =
+													table.reservations[
+														i
+													].totalNumberOfPeople;
+											}
+										}
+									});
+									if (timeSlot.tables.length > 0) {
+										reservedTablesForUser.push(timeSlot);
+									}
 								}
+								res.status(200).json(reservedTablesForUser);
 							}
-							res.status(200).json(reservedTablesForUser);
-						}
-					});
+						});
+					} else {
+						res.status(400).json({
+							message: "Booking for this service is full.",
+						});
+					}
 				}
 			} else {
 				if (checkEmail) {
