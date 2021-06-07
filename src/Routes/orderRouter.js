@@ -11,6 +11,7 @@ const {
 	markItemAsPrepared,
 	checkoutForWaiter,
 	markAsDelivered,
+	getOrdersForBarmen,
 } = require("../Controllers/orderController");
 
 orderRouter.post(
@@ -47,6 +48,12 @@ orderRouter.get(
 	"/get-for-waiter",
 	passport.authenticate("jwt", { session: false }),
 	getOrdersForWaiters
+);
+
+orderRouter.get(
+	"/get-for-barmen",
+	passport.authenticate("jwt", { session: false }),
+	getOrdersForBarmen
 );
 
 orderRouter.get(

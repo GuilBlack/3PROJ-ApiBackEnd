@@ -368,9 +368,15 @@ const getOrdersForWaiters = (req, res) => {
 };
 
 const getOrdersForCooks = (req, res) => {
-	if (req.user.role === "cook" || req.user.role === "barman") {
+	if (req.user.role === "cook") {
 		Order.find({ "items.preparing": true, pending: false })
-			.populate("items.menuItem")
+			.populate({
+				path: "items.menuItem",
+				populate: {
+					path: "menuCategory",
+					match: { type: { $ne: "Drinks" } },
+				},
+			})
 			.sort({ createdAt: -1 })
 			.exec((err, orders) => {
 				if (err) {
@@ -379,6 +385,63 @@ const getOrdersForCooks = (req, res) => {
 							"An error occured while querying the database.",
 					});
 				} else {
+					let newOrders = [];
+					orders.forEach((order) => {
+						let items = [];
+						order.items.forEach((item) => {
+							if (item.menuItem.menuCategory !== null) {
+								item.menuItem.menuCategory =
+									item.menuItem.menuCategory._id;
+								items.push(item);
+							}
+						});
+						if (items.length > 0) {
+							order.items = items;
+							newOrders.push(order);
+						}
+					});
+
+					res.status(200).json(newOrders);
+				}
+			});
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
+};
+
+const getOrdersForBarmen = (req, res) => {
+	if (req.user.role === "barman") {
+		Order.find({ "items.preparing": true, pending: false })
+			.populate({
+				path: "items.menuItem",
+				populate: {
+					path: "menuCategory",
+					match: { type: { $eq: "Drinks" } },
+				},
+			})
+			.sort({ createdAt: -1 })
+			.exec((err, orders) => {
+				if (err) {
+					res.status(500).json({
+						message:
+							"An error occured while querying the database.",
+					});
+				} else {
+					let newOrders = [];
+					orders.forEach((order) => {
+						let items = [];
+						order.items.forEach((item) => {
+							if (item.menuItem.menuCategory !== null) {
+								item.menuItem.menuCategory =
+									item.menuItem.menuCategory._id;
+								items.push(item);
+							}
+						});
+						if (items.length > 0) {
+							order.items = items;
+							newOrders.push(order);
+						}
+					});
 					res.status(200).json(orders);
 				}
 			});
@@ -482,4 +545,5 @@ module.exports = {
 	markItemAsPrepared: markItemAsPrepared,
 	checkoutForWaiter: checkoutForWaiter,
 	markAsDelivered: markAsDelivered,
+	getOrdersForBarmen: getOrdersForBarmen,
 };
