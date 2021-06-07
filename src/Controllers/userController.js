@@ -206,12 +206,10 @@ const addToCart = (req, res) => {
 					req.user.cart[index].amount + Number(req.body.amount) >
 					10
 				) {
-					return res
-						.status(400)
-						.json({
-							message:
-								"You can't add more than 10 of an item to your cart!",
-						});
+					return res.status(400).json({
+						message:
+							"You can't add more than 10 of an item to your cart!",
+					});
 				} else {
 					req.user.cart[index].amount += Number(req.body.amount);
 				}
@@ -353,6 +351,34 @@ const editAmountInCart = (req, res) => {
 	}
 };
 
+const topup = (req, res) => {
+	if (req.user.role === "customer" && req.body.amount) {
+		if (req.user.balance === undefined) {
+			req.user.balance = req.body.amount;
+		} else {
+			req.user.balance += req.body.amount;
+		}
+
+		req.user.save((err, newUser) => {
+			if (err) {
+				res.status(500).json({
+					message: "An error occured while querying the database.",
+				});
+			} else {
+				res.status(200).json({
+					message: `You have ${newUser.balance} credits on your account.`,
+				});
+			}
+		});
+	} else {
+		if (req.user.role !== "customer") {
+			res.status(401).json({ message: "Unauthorized." });
+		} else {
+			res.status(400).json({ message: "A value is missing." });
+		}
+	}
+};
+
 module.exports = {
 	registerCustomer: registerCustomer,
 	registerStaff: registerStaff,
@@ -363,4 +389,5 @@ module.exports = {
 	removeItemFromCart: removeItemFromCart,
 	getCart: getCart,
 	editAmountInCart: editAmountInCart,
+	topup: topup,
 };

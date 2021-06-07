@@ -28,6 +28,9 @@ const UserSchema = new mongoose.Schema({
 	balance: {
 		type: Number,
 	},
+	loyaltyPoints: {
+		type: Number,
+	},
 	cart: [
 		{
 			menuItem: {
