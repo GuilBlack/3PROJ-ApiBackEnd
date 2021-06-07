@@ -3,10 +3,7 @@ const User = require("../Models/User");
 const Ingredient = require("../Models/Ingredient");
 
 const checkout = (req, res) => {
-	if (
-		(req.user.role === "customer" || req.user.role === "waiter") &&
-		req.body.onSpot !== undefined
-	) {
+	if (req.user.role === "customer" && req.body.onSpot) {
 		User.findById(req.user._id)
 			.populate({
 				path: "cart",
@@ -41,10 +38,7 @@ const checkout = (req, res) => {
 							totalCost: totalCost,
 							onSpot: req.body.onSpot,
 							preferences: req.body.preferences,
-							customer:
-								req.user.role === "customer"
-									? req.user.email
-									: req.body.email,
+							customer: req.user.email,
 						});
 
 						order.save((err, newOrder) => {
@@ -70,12 +64,109 @@ const checkout = (req, res) => {
 				}
 			});
 	} else {
-		if (req.body.onSpot === undefined) {
+		if (req.user.role !== "customer") {
+			res.status(401).json({ message: "Unauthorized" });
+		} else {
 			res.status(400).json({
 				message: "You must specify wether you will eat on spot or not.",
 			});
-		} else {
+		}
+	}
+};
+
+const checkoutForWaiter = (req, res) => {
+	if (req.user.role === "waiter" && req.body.onSpot && req.body.email) {
+		User.findById(req.user._id)
+			.populate({
+				path: "cart",
+				populate: {
+					path: "menuItem",
+					populate: { path: "ingredients.ingredient" },
+				},
+			})
+			.select("cart -_id")
+			.exec((err, doc) => {
+				if (err) {
+					res.status(500).json({
+						message: "An error occured while querying the db.",
+					});
+				} else {
+					if (doc.cart.length === 0) {
+						res.status(400).json({ message: "cart is empty." });
+					} else {
+						User.findOne(
+							{ email: req.body.email },
+							(err, customer) => {
+								if (err) {
+									res.status(500).json({
+										message:
+											"An error occured while querying the db.",
+									});
+								} else {
+									if (customer) {
+										res.status(400).json({
+											message:
+												"This customer is already registered.",
+										});
+									} else {
+										let items = [];
+										let totalCost = 0;
+										doc.cart.forEach((item) => {
+											const newItem = {
+												menuItem: item.menuItem,
+												amount: item.amount,
+												cost:
+													item.amount *
+													item.menuItem.price,
+											};
+											totalCost +=
+												item.amount *
+												item.menuItem.price;
+											items.push(newItem);
+										});
+										const order = new Order({
+											items: items,
+											totalCost: totalCost,
+											onSpot: req.body.onSpot,
+											preferences: req.body.preferences,
+											customer: req.body.email,
+										});
+										order.save((err, newOrder) => {
+											if (err) {
+												res.status(500).json({
+													message:
+														"couldn't save order.",
+												});
+											} else {
+												req.user.cart = [];
+												req.user.save((err, user) => {
+													if (err) {
+														res.status(500).json({
+															message:
+																"couldn't clear cart but the order is created.",
+														});
+													} else {
+														res.status(200).json(
+															newOrder
+														);
+													}
+												});
+											}
+										});
+									}
+								}
+							}
+						);
+					}
+				}
+			});
+	} else {
+		if (req.user.role !== "waiter") {
 			res.status(401).json({ message: "Unauthorized" });
+		} else {
+			res.status(400).json({
+				message: "A value is missing.",
+			});
 		}
 	}
 };
@@ -336,6 +427,52 @@ const markItemAsPrepared = (req, res) => {
 	}
 };
 
+const markAsDelivered = (req, res) => {
+	if (req.user.role === "waiter" && req.body.orderId) {
+		Order.findById(req.body.orderId, (err, order) => {
+			if (err) {
+				res.status(500).json({
+					message: "An error occured while querying the database.",
+				});
+			} else {
+				let checkIfReady = true;
+				for (i = 0; i < order.items.length; i++) {
+					if (order.items[i].preparing) {
+						checkIfReady = false;
+						break;
+					}
+				}
+				if (checkIfReady) {
+					order.delivered = true;
+					order.save((err, newOrder) => {
+						if (err) {
+							res.status(500).json({
+								message:
+									"An error occured while querying the database.",
+							});
+						} else {
+							res.status(200).json({
+								message: "Order successfully delivered.",
+							});
+						}
+					});
+				} else {
+					res.status(400).json({
+						message:
+							"You can't mark the order as delivered if all the dishes aren't ready!",
+					});
+				}
+			}
+		});
+	} else {
+		if (req.user.role !== "waiter") {
+			res.status(401).json({ message: "Unauthorized." });
+		} else {
+			res.status(400).json({ message: "A value is missing!" });
+		}
+	}
+};
+
 module.exports = {
 	checkout: checkout,
 	confirmOrder: confirmOrder,
@@ -343,4 +480,6 @@ module.exports = {
 	getOrdersForWaiters: getOrdersForWaiters,
 	getOrdersForCooks: getOrdersForCooks,
 	markItemAsPrepared: markItemAsPrepared,
+	checkoutForWaiter: checkoutForWaiter,
+	markAsDelivered: markAsDelivered,
 };
