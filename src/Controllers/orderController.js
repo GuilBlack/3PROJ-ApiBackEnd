@@ -476,7 +476,9 @@ const markItemAsPrepared = (req, res) => {
 										"An error occured while querying the database.",
 								});
 							} else {
-								res.status(200).json(newOrder);
+								res.status(200).json({
+									message: "Marked as prepared.",
+								});
 							}
 						});
 					}
@@ -536,6 +538,77 @@ const markAsDelivered = (req, res) => {
 	}
 };
 
+const markAsPaidForUser = (req, res) => {
+	if (req.user.role === "customer") {
+		Order.findById(req.body.orderId, (err, order) => {
+			if (err) {
+				res.status(500).json({
+					message: "An error occured while querying the database.",
+				});
+			} else {
+				if (order) {
+					if (order.customer === req.user.email) {
+						let totalCost = order.totalCost;
+						if (Number(req.body.tip) > 0) {
+							totalCost += tip;
+						}
+						if (req.user.balance === undefined) {
+							req.user.balance = 0;
+						}
+						if (totalCost > req.user.balance) {
+							res.status(400).json({
+								message:
+									"You don't have enough credits to pay for this order!",
+							});
+						} else {
+							order.paid = true;
+							order.save((err, newOrder) => {
+								if (err) {
+									res.status(500).json({
+										message:
+											"An error occured while querying the database.",
+									});
+								} else {
+									req.user.balance -= totalCost;
+									if (req.user.loyaltyPoints === undefined) {
+										req.user.loyaltyPoints =
+											order.totalCost * 10;
+									} else {
+										req.user.loyaltyPoints +=
+											order.totalCost * 10;
+									}
+									req.user.save((err, customer) => {
+										if (err) {
+											res.status(500).json({
+												message:
+													"An error occured while querying the database.",
+											});
+										} else {
+											res.status(200).json({
+												message: `This transaction was approved. You now have ${customer.balance} credits on your account and ${customer.loyaltyPoints} loyalty points.`,
+											});
+										}
+									});
+								}
+							});
+						}
+					} else {
+						res.status(400).json({
+							message: "Couldn't find your order.",
+						});
+					}
+				} else {
+					res.status(400).json({
+						message: "Couldn't find your order.",
+					});
+				}
+			}
+		});
+	} else {
+		res.status(401).json({ message: "Unauthorized." });
+	}
+};
+
 module.exports = {
 	checkout: checkout,
 	confirmOrder: confirmOrder,
@@ -546,4 +619,5 @@ module.exports = {
 	checkoutForWaiter: checkoutForWaiter,
 	markAsDelivered: markAsDelivered,
 	getOrdersForBarmen: getOrdersForBarmen,
+	markAsPaidForUser: markAsPaidForUser,
 };
