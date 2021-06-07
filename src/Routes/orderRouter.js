@@ -11,6 +11,8 @@ const {
 	markItemAsPrepared,
 	checkoutForWaiter,
 	markAsDelivered,
+	getOrdersForBarmen,
+	markAsPaidForUser,
 } = require("../Controllers/orderController");
 
 orderRouter.post(
@@ -50,6 +52,12 @@ orderRouter.get(
 );
 
 orderRouter.get(
+	"/get-for-barmen",
+	passport.authenticate("jwt", { session: false }),
+	getOrdersForBarmen
+);
+
+orderRouter.get(
 	"/get-for-cooks",
 	passport.authenticate("jwt", { session: false }),
 	getOrdersForCooks
@@ -59,6 +67,12 @@ orderRouter.put(
 	"/mark-item-as-prepared",
 	passport.authenticate("jwt", { session: false }),
 	markItemAsPrepared
+);
+
+orderRouter.put(
+	"/mark-order-as-paid-for-user",
+	passport.authenticate("jwt", { session: false }),
+	markAsPaidForUser
 );
 
 module.exports = orderRouter;

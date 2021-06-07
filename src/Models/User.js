@@ -29,6 +29,9 @@ const UserSchema = new mongoose.Schema({
 		type: Number,
 		default: 1000
 	},
+	loyaltyPoints: {
+		type: Number,
+	},
 	cart: [
 		{
 			menuItem: {
