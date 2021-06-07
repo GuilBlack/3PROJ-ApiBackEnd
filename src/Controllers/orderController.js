@@ -39,6 +39,7 @@ const checkout = (req, res) => {
 							onSpot: req.body.onSpot,
 							preferences: req.body.preferences,
 							customer: req.user.email,
+							customerName: `${req.user.firstName} ${req.user.lastName}`,
 						});
 
 						order.save((err, newOrder) => {
@@ -75,7 +76,12 @@ const checkout = (req, res) => {
 };
 
 const checkoutForWaiter = (req, res) => {
-	if (req.user.role === "waiter" && req.body.onSpot && req.body.email) {
+	if (
+		req.user.role === "waiter" &&
+		req.body.onSpot &&
+		req.body.email &&
+		req.body.name
+	) {
 		User.findById(req.user._id)
 			.populate({
 				path: "cart",
@@ -130,6 +136,7 @@ const checkoutForWaiter = (req, res) => {
 											onSpot: req.body.onSpot,
 											preferences: req.body.preferences,
 											customer: req.body.email,
+											customerName: req.body.name,
 										});
 										order.save((err, newOrder) => {
 											if (err) {
