@@ -8,19 +8,22 @@ const makeReservation = (req, res) => {
 			});
 		else {
 			let email;
+			let name;
 			let checkEmail = false;
 
 			if (req.user.role === "waiter") {
-				if (req.body.email) {
+				if (req.body.email && req.body.name) {
 					email = req.body.email;
+					name = req.body.name;
 					checkEmail = true;
 				} else {
 					res.status(400).json({
-						message: "Where is the email ma dude?",
+						message: "Where is the email and the name?",
 					});
 				}
 			} else if (req.user.role === "customer") {
 				email = req.user.email;
+				name = `${req.user.firstName} ${req.user.lastName}`;
 				checkEmail = true;
 			} else {
 				res.status(401).json(
@@ -73,6 +76,9 @@ const makeReservation = (req, res) => {
 						reservedTables.forEach((table) => {
 							table.reservations[req.body.timeSlot - 1].customer =
 								email;
+							table.reservations[
+								req.body.timeSlot - 1
+							].customerName = name;
 							table.reservations[
 								req.body.timeSlot - 1
 							].isReserved = true;
@@ -253,7 +259,7 @@ const getAllReservations = (req, res) => {
 								if (table.reservations[i].isReserved) {
 									timeSlot.reservations.push({
 										customer:
-											table.reservations[i].customer,
+											table.reservations[i].customerName,
 										totalNumberOfPeople:
 											table.reservations[i]
 												.totalNumberOfPeople,

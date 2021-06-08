@@ -61,6 +61,9 @@ const OrderSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	customerName: {
+		type: String,
+	},
 	createdAt: {
 		type: Date,
 		default: Date.now,

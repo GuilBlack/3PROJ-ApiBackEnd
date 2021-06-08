@@ -10,6 +10,7 @@ const resetReservations = () => {
 		tableArrangement.layout.forEach((table) => {
 			table.reservations.forEach((reservation) => {
 				reservation.customer = null;
+				reservation.customerName = null;
 				reservation.isReserved = false;
 				reservation.totalNumberOfPeople = 0;
 			});
