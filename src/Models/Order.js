@@ -61,15 +61,16 @@ const OrderSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	waiter: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "User",
+	},
 	customerName: {
 		type: String,
 	},
 	createdAt: {
 		type: Date,
 		default: Date.now,
-	},
-	tip: {
-		type: Number,
 	},
 });
 
