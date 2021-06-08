@@ -8,9 +8,11 @@ const { dbPassword, dbUsername } = require("./dbUser");
 const { routes } = require("./src/Routes/appRoutes");
 const { resetReservations } = require("./src/scheduledTasks/reservationsTasks");
 
+//creating the express app
 const app = express();
 const PORT = process.env.PORT || 6969;
 
+//connecting to the db
 const dbUri = `mongodb+srv://${dbUsername}:${dbPassword}@cluster0.cxlt6.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const connectionParams = {
 	useNewUrlParser: true,
@@ -32,6 +34,7 @@ mongoose.connect(
 	}
 );
 
+//cron task that will repeat itself every night at 00:00
 cron.schedule("0 0 * * *", () => {
 	resetReservations();
 });
@@ -44,14 +47,18 @@ var limiter = new RateLimit({
 app.use(limiter);
 
 app.enable("trust proxy");
+//setting up some parsers to parse requests
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+//cors to communicate with the admin website
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 
+//routes
 routes(app);
 
+//app listening on this port only
 app.listen(PORT, () => {
 	console.log(`node express API running on port ${PORT}`);
 });

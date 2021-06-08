@@ -1,5 +1,6 @@
 const TableArrangement = require("../Models/TableArrangement");
 
+//clear reservations at midnight everyday
 const resetReservations = () => {
 	TableArrangement.findOne().exec((err, tableArrangement) => {
 		if (err)

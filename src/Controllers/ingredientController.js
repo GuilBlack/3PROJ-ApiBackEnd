@@ -1,5 +1,6 @@
 const Ingredient = require("../Models/Ingredient");
 
+//add ingredients to the db. not really much to explain here
 const addIngredient = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized", msgError: true });
@@ -37,6 +38,7 @@ const addIngredient = (req, res) => {
 	}
 };
 
+//update stock from the stock given. not really much to explain here either
 const updateStock = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized", msgError: true });
@@ -113,6 +115,7 @@ const deleteIngredient = (req, res) => {
 	}
 };
 
+//sends a list of all the ingredients to the admin
 const listIngredients = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized", msgError: true });

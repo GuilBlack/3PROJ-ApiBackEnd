@@ -9,6 +9,7 @@ const BUCKET_NAME = "cdn-the-good-fork";
 AWS.config.loadFromPath("./src/auth/awsConfig.json");
 const s3 = new AWS.S3();
 
+//add new menu category. not much to explain here.
 const addMenuCategory = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized.", msgError: true });
@@ -53,10 +54,12 @@ const addMenuCategory = (req, res) => {
 	}
 };
 
+//add a new menu item
 const addMenuItem = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized.", msgError: true });
 	else {
+		//uses multipart form data format to have the image
 		const form = new IncomingForm();
 
 		form.parse(req, (err, fields, files) => {
@@ -76,6 +79,7 @@ const addMenuItem = (req, res) => {
 				) {
 					try {
 						fields.ingredients = JSON.parse(fields.ingredients);
+						//see if the given menuCategory exists
 						MenuCategory.findById(
 							fields.categoryId,
 							(err, menuCategory) => {
@@ -94,6 +98,7 @@ const addMenuItem = (req, res) => {
 										});
 								} else {
 									if (menuCategory) {
+										//opening a stream to read the given file
 										const fileContent = fs.readFileSync(
 											files.imagePreview.path
 										);
@@ -106,6 +111,7 @@ const addMenuItem = (req, res) => {
 											ContentType:
 												files.imagePreview.type,
 										};
+										//uploading the file on an s3
 										s3.upload(params, (err, data) => {
 											if (err)
 												res.status(500).json({
@@ -116,6 +122,7 @@ const addMenuItem = (req, res) => {
 												});
 											else {
 												try {
+													//deleting the file after sending it to the s3
 													fs.unlinkSync(
 														files.imagePreview.path
 													);
@@ -124,6 +131,7 @@ const addMenuItem = (req, res) => {
 														"Couldn't delete tmp file."
 													);
 												}
+												//saving the menu item.
 												const menuItem = new MenuItem({
 													name: fields.name,
 													description:
@@ -157,6 +165,7 @@ const addMenuItem = (req, res) => {
 																msgError: true,
 															});
 													else {
+														//updating menu category.
 														menuCategory.menuItems.push(
 															menuItem
 														);
@@ -211,6 +220,7 @@ const addMenuItem = (req, res) => {
 	}
 };
 
+//sends a list of all the categories. not much to tell here.
 const getAllCategories = (req, res) => {
 	MenuCategory.find()
 		.sort({ name: -1 })
@@ -235,10 +245,12 @@ const getAllCategories = (req, res) => {
 		});
 };
 
+//delete menu item.
 const deleteMenuItem = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized.", msgError: true });
 	else {
+		//finds and delete the menu item with the given id
 		MenuItem.findByIdAndDelete(req.body.itemId)
 			.populate({ path: "menuCategory" })
 			.exec((err, menuItem) => {
@@ -256,6 +268,7 @@ const deleteMenuItem = (req, res) => {
 						});
 				} else {
 					if (menuItem) {
+						//removing the menu item from the menu category
 						const index = menuItem.menuCategory.menuItems.indexOf(
 							menuItem._id
 						);
@@ -268,6 +281,7 @@ const deleteMenuItem = (req, res) => {
 									msgError: true,
 								});
 							else {
+								//deleting the image from the s3 with the given object name that is stored in the image url
 								const objectName = menuItem.imageUrl.substring(
 									menuItem.imageUrl.lastIndexOf("/") + 1
 								);
@@ -305,10 +319,12 @@ const deleteMenuItem = (req, res) => {
 	}
 };
 
+//deleting menu category
 const deleteCategory = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized.", msgError: true });
 	else {
+		//find and delete menu category with the given id
 		MenuCategory.findByIdAndDelete(req.body.categoryId)
 			.populate({ path: "menuItems" })
 			.exec((err, menuCategory) => {
@@ -325,6 +341,7 @@ const deleteCategory = (req, res) => {
 							msgError: true,
 						});
 				} else {
+					//checks if there are any menu items to see if there are images to delete
 					if (menuCategory.menuItems.length === 0) {
 						res.status(200).json({
 							message: "Succesfully deleted category.",
@@ -332,6 +349,7 @@ const deleteCategory = (req, res) => {
 						});
 					} else {
 						if (menuCategory) {
+							//gets all image names to put it in an array then deleting everything
 							const params = {
 								Bucket: BUCKET_NAME,
 								Delete: {
