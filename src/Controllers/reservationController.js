@@ -248,17 +248,20 @@ const getAllReservations = (req, res) => {
 									table.reservations[i].customer ===
 									timeSlot.reservations[j].customer
 								) {
-									reservationIndex = j + 1;
+									reservationIndex = j;
 								}
 							}
-							if (reservationIndex) {
+
+							if (reservationIndex !== null) {
 								timeSlot.reservations[
-									reservationIndex - 1
+									reservationIndex
 								].tables.push(table.position);
 							} else {
 								if (table.reservations[i].isReserved) {
 									timeSlot.reservations.push({
 										customer:
+											table.reservations[i].customer,
+										customerName:
 											table.reservations[i].customerName,
 										totalNumberOfPeople:
 											table.reservations[i]
@@ -268,6 +271,10 @@ const getAllReservations = (req, res) => {
 								}
 							}
 						}
+					});
+					timeSlot.reservations.forEach((reservation) => {
+						reservation.customer = reservation.customerName;
+						reservation.customerName = undefined;
 					});
 					reservedTables.push(timeSlot);
 				}
