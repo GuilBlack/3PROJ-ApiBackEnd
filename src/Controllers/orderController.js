@@ -625,13 +625,22 @@ const markAsPaidForUser = (req, res) => {
 					});
 				} else {
 					if (order) {
-						console.log(order);
 						if (
 							order.customer === req.user.email &&
 							order.pending === false
 						) {
 							//calculate total cost
-							let totalCost = order.totalCost;
+							let totalCost;
+							if (Number(req.body.loyaltyPoints)) {
+								totalCost =
+									order.totalCost *
+									(1 -
+										Number(req.body.loyaltyPoints) /
+											100000);
+							} else {
+								totalCost = order.totalCost;
+							}
+
 							if (Number(req.body.tip) > 0) {
 								totalCost += Number(req.body.tip);
 							}
@@ -639,11 +648,25 @@ const markAsPaidForUser = (req, res) => {
 							if (req.user.balance === undefined) {
 								req.user.balance = 0;
 							}
-							if (totalCost > req.user.balance) {
-								res.status(400).json({
-									message:
-										"You don't have enough credits to pay for this order!",
-								});
+							if (
+								totalCost > req.user.balance ||
+								Number(req.body.loyaltyPoints) >
+									req.user.loyaltyPoints
+							) {
+								if (
+									Number(req.body.loyaltyPoints) >
+									req.user.loyaltyPoints
+								) {
+									res.status(400).json({
+										message:
+											"You don't have enough loyalty points to pay for this order!",
+									});
+								} else {
+									res.status(400).json({
+										message:
+											"You don't have enough credits to pay for this order!",
+									});
+								}
 							} else {
 								//change order paid status + updating it
 								order.paid = true;
@@ -656,15 +679,17 @@ const markAsPaidForUser = (req, res) => {
 									} else {
 										//debiting total cost from user's balance
 										req.user.balance -= totalCost;
-										if (
-											req.user.loyaltyPoints === undefined
-										) {
-											req.user.loyaltyPoints =
-												order.totalCost * 10;
+										if (req.body.loyaltyPoints) {
+											req.user.loyaltyPoints -= Number(
+												req.body.loyaltyPoints
+											);
 										} else {
 											req.user.loyaltyPoints +=
-												order.totalCost * 10;
+												order.totalCost * 100;
 										}
+										req.user.balance =
+											Math.round(req.user.balance * 100) /
+											100;
 										req.user.save((err, customer) => {
 											if (err) {
 												res.status(500).json({
@@ -678,10 +703,10 @@ const markAsPaidForUser = (req, res) => {
 													undefined
 												) {
 													order.waiter.balance =
-														req.body.tip;
+														Number(req.body.tip);
 												} else {
 													order.waiter.balance +=
-														req.body.tip;
+														Number(req.body.tip);
 												}
 												User.updateOne(
 													{ _id: order.waiter._id },
