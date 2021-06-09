@@ -590,6 +590,7 @@ const markAsDelivered = (req, res) => {
 							});
 						} else {
 							res.status(200).json({
+								order: newOrder,
 								message: "Order successfully delivered.",
 							});
 						}
@@ -729,6 +730,49 @@ const markAsPaidForUser = (req, res) => {
 	}
 };
 
+const markAsPaidForWaiter = (req, res) => {
+	if (req.user.role === "waiter" && req.body.orderId) {
+		Order.findById(req.body.orderId, (err, order) => {
+			if (err) {
+				res.status(500).json({
+					message: "An error occured while querying the database.",
+				});
+			} else {
+				if (order) {
+					if (!order.pending) {
+						order.paid = true;
+						order.save((err, newOrder) => {
+							if (err) {
+								res.status(500).json({
+									message:
+										"An error occured while querying the database.",
+								});
+							} else {
+								res.status(200).json(newOrder);
+							}
+						});
+					} else {
+						res.status(400).json({
+							message:
+								"You can't pay while the order is still pending.",
+						});
+					}
+				} else {
+					res.status(400).json({
+						message: "Couldn't find you order.",
+					});
+				}
+			}
+		});
+	} else {
+		if (!req.body.orderId) {
+			res.status(401).json();
+		} else {
+			res.status(400).json({ message: "A value is missing" });
+		}
+	}
+};
+
 module.exports = {
 	checkout: checkout,
 	confirmOrder: confirmOrder,
@@ -740,4 +784,5 @@ module.exports = {
 	markAsDelivered: markAsDelivered,
 	getOrdersForBarmen: getOrdersForBarmen,
 	markAsPaidForUser: markAsPaidForUser,
+	markAsPaidForWaiter: markAsPaidForWaiter,
 };
