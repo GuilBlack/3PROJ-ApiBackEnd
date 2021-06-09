@@ -27,10 +27,10 @@ ingredientRouter.put(
 	updateStock
 );
 
-ingredientRouter.delete(
-	"/delete",
-	passport.authenticate("jwt", { session: false }),
-	deleteIngredient
-);
+// ingredientRouter.delete(
+// 	"/delete",
+// 	passport.authenticate("jwt", { session: false }),
+// 	deleteIngredient
+// );
 
 module.exports = ingredientRouter;

@@ -5,7 +5,8 @@ const tableRouter = require("./tableRoute");
 const reservationRouter = require("./reservationRouter");
 const orderRouter = require("./orderRouter");
 
-//routing system for user and city
+//routing system for the app
+//you'll see the full route to the endpoints if you go in the router files
 module.exports = {
 	routes: (app) => {
 		app.get("/", (req, res) => {

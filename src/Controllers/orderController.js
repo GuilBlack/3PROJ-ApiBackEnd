@@ -2,6 +2,7 @@ const Order = require("../Models/Order");
 const User = require("../Models/User");
 const Ingredient = require("../Models/Ingredient");
 
+//checkout for customers
 const checkout = (req, res) => {
 	if (req.user.role === "customer" && req.body.onSpot) {
 		User.findById(req.user._id)
@@ -19,11 +20,13 @@ const checkout = (req, res) => {
 						message: "An error occured while querying the db.",
 					});
 				} else {
+					//check if cart isn't empty
 					if (doc.cart.length === 0) {
 						res.status(400).json({ message: "cart is empty." });
 					} else {
 						let items = [];
 						let totalCost = 0;
+						//calculate cost of each dish + tocal cost of order
 						doc.cart.forEach((item) => {
 							const newItem = {
 								menuItem: item.menuItem,
@@ -33,6 +36,7 @@ const checkout = (req, res) => {
 							totalCost += item.amount * item.menuItem.price;
 							items.push(newItem);
 						});
+						//create new order
 						const order = new Order({
 							items: items,
 							totalCost: totalCost,
@@ -42,6 +46,7 @@ const checkout = (req, res) => {
 							customerName: `${req.user.firstName} ${req.user.lastName}`,
 						});
 
+						//save new order
 						order.save((err, newOrder) => {
 							if (err) {
 								res.status(500).json({
@@ -97,9 +102,11 @@ const checkoutForWaiter = (req, res) => {
 						message: "An error occured while querying the db.",
 					});
 				} else {
+					//check if cart is empty
 					if (doc.cart.length === 0) {
 						res.status(400).json({ message: "cart is empty." });
 					} else {
+						//check if this email has an account
 						User.findOne(
 							{ email: req.body.email },
 							(err, customer) => {
@@ -115,6 +122,7 @@ const checkoutForWaiter = (req, res) => {
 												"This customer is already registered.",
 										});
 									} else {
+										//calculate costs
 										let items = [];
 										let totalCost = 0;
 										doc.cart.forEach((item) => {
@@ -178,10 +186,12 @@ const checkoutForWaiter = (req, res) => {
 	}
 };
 
+//waiter confirmation if true confirm if false cancel
 const confirmOrder = (req, res) => {
 	if (req.user.role === "waiter") {
 		if (req.body.orderId && req.body.confirmed !== undefined) {
 			if (req.body.confirmed) {
+				//confirm order
 				Order.findById(req.body.orderId)
 					.populate({
 						path: "items",
@@ -198,6 +208,7 @@ const confirmOrder = (req, res) => {
 							});
 						} else {
 							if (order) {
+								//array of ingredients to check later if we have enough ingredients for this order
 								let ingredients = [];
 								order.items.forEach((item) => {
 									item.menuItem.ingredients.forEach(
@@ -239,6 +250,7 @@ const confirmOrder = (req, res) => {
 								});
 								let confirmStock = true;
 
+								//check if enough ingredients
 								for (i = 0; i < ingredients.length; i++) {
 									if (ingredients[i].stock < 0) {
 										confirmStock = false;
@@ -246,10 +258,12 @@ const confirmOrder = (req, res) => {
 									}
 								}
 								if (confirmStock) {
+									//confirming and saving the order
 									order.pending = false;
 									order.items.forEach((item) => {
 										item.preparing = true;
 									});
+									order.waiter = req.user._id;
 									order.save((err, newOrder) => {
 										if (err) {
 											res.status(500).json({
@@ -257,6 +271,7 @@ const confirmOrder = (req, res) => {
 													"Couldn't modify the order.",
 											});
 										} else {
+											//update stock
 											ingredients.forEach(
 												(ingredient) => {
 													Ingredient.findByIdAndUpdate(
@@ -295,6 +310,7 @@ const confirmOrder = (req, res) => {
 						}
 					});
 			} else {
+				//cancel order
 				Order.findById(req.body.orderId).exec((err, order) => {
 					if (err) {
 						res.status(500).json({
@@ -335,6 +351,7 @@ const confirmOrder = (req, res) => {
 	}
 };
 
+//all gets methods are for retrieving orders for the different roles
 const getUserOrders = (req, res) => {
 	if (req.user.role === "customer") {
 		Order.find({ customer: req.user.email })
@@ -459,6 +476,7 @@ const getOrdersForBarmen = (req, res) => {
 	}
 };
 
+//for cooks and barmen when the dish/drinks is ready
 const markItemAsPrepared = (req, res) => {
 	if (req.user.role === "cook" || req.user.role === "barman") {
 		if (req.body.itemId || req.body.orderId) {
@@ -469,6 +487,7 @@ const markItemAsPrepared = (req, res) => {
 							"An error occured while querying the database.",
 					});
 				} else {
+					//search for item in order then check if it exists
 					const index = order.items.findIndex((item) => {
 						return item._id == req.body.itemId;
 					});
@@ -477,6 +496,7 @@ const markItemAsPrepared = (req, res) => {
 							message: "Couldn't find the item.",
 						});
 					} else {
+						//change preparing status and update order
 						order.items[index].preparing = false;
 						order.save((err, newOrder) => {
 							if (err) {
@@ -499,6 +519,7 @@ const markItemAsPrepared = (req, res) => {
 	}
 };
 
+//for waiter to change delivered status when the delivery of all the dishes/drinks if done
 const markAsDelivered = (req, res) => {
 	if (req.user.role === "waiter" && req.body.orderId) {
 		Order.findById(req.body.orderId, (err, order) => {
@@ -507,6 +528,7 @@ const markAsDelivered = (req, res) => {
 					message: "An error occured while querying the database.",
 				});
 			} else {
+				//check if all the dishes/drinks are ready
 				let checkIfReady = true;
 				for (i = 0; i < order.items.length; i++) {
 					if (order.items[i].preparing) {
@@ -515,6 +537,7 @@ const markAsDelivered = (req, res) => {
 					}
 				}
 				if (checkIfReady) {
+					//changing status + updating order
 					order.delivered = true;
 					order.save((err, newOrder) => {
 						if (err) {
@@ -545,72 +568,119 @@ const markAsDelivered = (req, res) => {
 	}
 };
 
+//for users when they pay for an order. changes their balance and loyalty points
 const markAsPaidForUser = (req, res) => {
 	if (req.user.role === "customer") {
-		Order.findById(req.body.orderId, (err, order) => {
-			if (err) {
-				res.status(500).json({
-					message: "An error occured while querying the database.",
-				});
-			} else {
-				if (order) {
-					if (order.customer === req.user.email) {
-						let totalCost = order.totalCost;
-						if (Number(req.body.tip) > 0) {
-							totalCost += tip;
-						}
-						if (req.user.balance === undefined) {
-							req.user.balance = 0;
-						}
-						if (totalCost > req.user.balance) {
-							res.status(400).json({
-								message:
-									"You don't have enough in your balance to pay for this order!",
-							});
-						} else {
-							order.paid = true;
-							order.save((err, newOrder) => {
-								if (err) {
-									res.status(500).json({
-										message:
-											"An error occured while querying the database.",
-									});
-								} else {
-									req.user.balance -= totalCost;
-									if (req.user.loyaltyPoints === undefined) {
-										req.user.loyaltyPoints =
-											order.totalCost * 10;
+		Order.findById(req.body.orderId)
+			.populate({ path: "waiter" })
+			.exec((err, order) => {
+				if (err) {
+					res.status(500).json({
+						message:
+							"An error occured while querying the database.",
+					});
+				} else {
+					if (order) {
+						console.log(order);
+						if (
+							order.customer === req.user.email &&
+							order.pending === false
+						) {
+							//calculate total cost
+							let totalCost = order.totalCost;
+							if (Number(req.body.tip) > 0) {
+								totalCost += Number(req.body.tip);
+							}
+							//check if user has enough $$$
+							if (req.user.balance === undefined) {
+								req.user.balance = 0;
+							}
+							if (totalCost > req.user.balance) {
+								res.status(400).json({
+									message:
+										"You don't have enough credits to pay for this order!",
+								});
+							} else {
+								//change order paid status + updating it
+								order.paid = true;
+								order.save((err, newOrder) => {
+									if (err) {
+										res.status(500).json({
+											message:
+												"An error occured while querying the database.",
+										});
 									} else {
-										req.user.loyaltyPoints +=
-											order.totalCost * 10;
-									}
-									req.user.save((err, customer) => {
-										if (err) {
-											res.status(500).json({
-												message:
-													"An error occured while querying the database.",
-											});
+										//debiting total cost from user's balance
+										req.user.balance -= totalCost;
+										if (
+											req.user.loyaltyPoints === undefined
+										) {
+											req.user.loyaltyPoints =
+												order.totalCost * 10;
 										} else {
-											res.status(200).json({
-												message: `This transaction was approved. You now have ${customer.balance} credits on your account and ${customer.loyaltyPoints} loyalty points.`,
-											});
+											req.user.loyaltyPoints +=
+												order.totalCost * 10;
 										}
-									});
-								}
-							});
+										req.user.save((err, customer) => {
+											if (err) {
+												res.status(500).json({
+													message:
+														"An error occured while querying the database.",
+												});
+											} else {
+												//adding the tip to the waiter's balance
+												if (
+													order.waiter.balance ===
+													undefined
+												) {
+													order.waiter.balance =
+														req.body.tip;
+												} else {
+													order.waiter.balance +=
+														req.body.tip;
+												}
+												User.updateOne(
+													{ _id: order.waiter._id },
+													{
+														balance:
+															order.waiter
+																.balance,
+													},
+													(err, waiter) => {
+														if (err) {
+															console.log(
+																`Couldn't add ${req.body.tip} to the waiter's balance.`
+															);
+														}
+													}
+												);
+												res.status(200).json({
+													message: `This transaction was approved. You now have ${customer.balance} credits on your account and ${customer.loyaltyPoints} loyalty points.`,
+												});
+											}
+										});
+									}
+								});
+							}
+						} else {
+							if (order.pending) {
+								res.status(400).json({
+									message:
+										"You can't pay while the order is still pending.",
+								});
+							} else {
+								res.status(400).json({
+									message: "Couldn't find your order.",
+								});
+							}
 						}
 					} else {
 						res.status(400).json({
 							message: "Couldn't find your order.",
 						});
 					}
-				} else {
-					res.status(400).json({
-						message: "Couldn't find your order.",
-					});
 				}
-			}
-		});
+			});
 	} else {
 		res.status(401).json({ message: "Unauthorized." });
 	}

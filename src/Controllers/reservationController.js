@@ -1,5 +1,6 @@
 const TableArrangement = require("../Models/TableArrangement");
 
+//makes a new reservation (can by made by either a user or a waiter)
 const makeReservation = (req, res) => {
 	TableArrangement.findOne().exec((err, tableArrangement) => {
 		if (err)
@@ -7,11 +8,13 @@ const makeReservation = (req, res) => {
 				message: "Can't connect to the database.",
 			});
 		else {
+			//assigning email and name depending if it's a user or a waiter
 			let email;
 			let name;
 			let checkEmail = false;
 
 			if (req.user.role === "waiter") {
+				//checking to see if all of the required fields are present
 				if (req.body.email && req.body.name) {
 					email = req.body.email;
 					name = req.body.name;
@@ -31,8 +34,10 @@ const makeReservation = (req, res) => {
 				);
 			}
 
+			//checking if every required fields are present
 			if (req.body.timeSlot && req.body.seats && checkEmail) {
 				let checkIfReserved = false;
+				//check if the user already has a reservation for this time slot
 				for (i = 0; i < tableArrangement.layout.length; i++) {
 					if (
 						tableArrangement.layout[i].reservations[
@@ -51,6 +56,7 @@ const makeReservation = (req, res) => {
 				if (!checkIfReserved) {
 					let freeTables = [];
 
+					//takes only tables that are in the restaurant (could have been done in the db i believe)
 					tableArrangement.layout.forEach((table) => {
 						if (
 							!table.reservations[req.body.timeSlot - 1]
@@ -61,10 +67,12 @@ const makeReservation = (req, res) => {
 						}
 					});
 
+					//sort tables (could also have been done in the db i believe)
 					freeTables.sort((a, b) => {
 						return Number(a.capacity) - Number(b.capacity);
 					});
 
+					//recursion to determine the best way to reserve tables for the given number of seats
 					let reservedTables = recursiveReservation(
 						freeTables,
 						req.body.timeSlot,
@@ -72,7 +80,9 @@ const makeReservation = (req, res) => {
 						[]
 					);
 
+					//check if it could reserve
 					if (reservedTables.length > 0) {
+						//adding info to reservations
 						reservedTables.forEach((table) => {
 							table.reservations[req.body.timeSlot - 1].customer =
 								email;
@@ -87,6 +97,7 @@ const makeReservation = (req, res) => {
 							].totalNumberOfPeople = req.body.seats;
 						});
 
+						//saving reservations
 						tableArrangement.save((err, doc) => {
 							if (err)
 								res.status(500).json({
@@ -94,6 +105,7 @@ const makeReservation = (req, res) => {
 										"Couldn't make reservation due to a problem with the db.",
 								});
 							else {
+								//some formating on the response
 								let reservedTablesForUser = [];
 
 								for (i = 0; i < 4; i++) {
@@ -141,22 +153,22 @@ const makeReservation = (req, res) => {
 	});
 };
 
+//used to make the reservations
 function recursiveReservation(freeTables, timeSlot, seats, reservedTables) {
+	//first check if there are any free table (could have been done outside this function)
 	if (freeTables.length === 0) {
 		return [];
 	}
 	if (seats <= 6) {
+		//check the best table when there are less people that the biggest table
 		for (i = 0; i < freeTables.length; i++) {
 			if (seats <= freeTables[i].capacity) {
-				// freeTables[i].reservations[timeSlot - 1].isReserved = true;
 				reservedTables.push(freeTables[i]);
 				return reservedTables;
 			}
 		}
 		if (seats - freeTables[freeTables.length - 1].capacity > 0) {
-			// freeTables[freeTables.length - 1].reservations[
-			// 	timeSlot - 1
-			// ].isReserved = true;
+			//check for the biggest table since
 			reservedTables.push(freeTables[freeTables.length - 1]);
 			const capacity = freeTables[freeTables.length - 1].capacity;
 			freeTables.splice(freeTables.length - 1, 1);
@@ -185,6 +197,7 @@ function recursiveReservation(freeTables, timeSlot, seats, reservedTables) {
 	}
 }
 
+//get the reservations for the user that requested them
 const getUserReservations = (req, res) => {
 	if (req.user.role === "customer") {
 		TableArrangement.findOne().exec((err, tableArrangement) => {
@@ -193,6 +206,7 @@ const getUserReservations = (req, res) => {
 					message: "Can't connect to the database.",
 				});
 			} else {
+				//some formating for the responses
 				let reservedTablesForUser = [];
 
 				for (i = 0; i < 4; i++) {
@@ -225,6 +239,7 @@ const getUserReservations = (req, res) => {
 	}
 };
 
+//used for the waiter to see all the reservations
 const getAllReservations = (req, res) => {
 	if (req.user.role === "waiter") {
 		TableArrangement.findOne().exec((err, tableArrangement) => {
@@ -233,6 +248,7 @@ const getAllReservations = (req, res) => {
 					message: "Can't connect to the database.",
 				});
 			} else {
+				//some formating...
 				let reservedTables = [];
 
 				for (i = 0; i < 4; i++) {
