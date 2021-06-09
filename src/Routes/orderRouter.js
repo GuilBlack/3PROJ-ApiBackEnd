@@ -13,7 +13,7 @@ const {
 	markAsDelivered,
 	getOrdersForBarmen,
 	markAsPaidForUser,
-	markAsPaidForWaiter,
+	// markAsPaidForWaiter,
 } = require("../Controllers/orderController");
 
 orderRouter.post(
@@ -76,10 +76,10 @@ orderRouter.put(
 	markAsPaidForUser
 );
 
-orderRouter.put(
-	"/mark-order-as-paid-for-waiter",
-	passport.authenticate("jwt", { session: false }),
-	markAsPaidForWaiter
-);
+// orderRouter.put(
+// 	"/mark-order-as-paid-for-waiter",
+// 	passport.authenticate("jwt", { session: false }),
+// 	markAsPaidForWaiter
+// );
 
 module.exports = orderRouter;

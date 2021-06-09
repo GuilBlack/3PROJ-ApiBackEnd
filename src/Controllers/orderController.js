@@ -289,7 +289,11 @@ const confirmOrder = (req, res) => {
 													);
 												}
 											);
-											res.status(200).json(newOrder);
+											res.status(200).json({
+												order: newOrder,
+												message:
+													"The order has been successfully confirmed. The stock has been updated.",
+											});
 										}
 									});
 								} else {
@@ -327,7 +331,9 @@ const confirmOrder = (req, res) => {
 									});
 								} else {
 									res.status(200).json({
-										message: "Order cancelled.",
+										order: cancelledOrder,
+										message:
+											"Order cancelled because of lack of ingredients.",
 									});
 								}
 							});
@@ -464,7 +470,7 @@ const getOrdersForBarmen = (req, res) => {
 							newOrders.push(order);
 						}
 					});
-					res.status(200).json(orders);
+					res.status(200).json(newOrders);
 				}
 			});
 	} else {
@@ -501,9 +507,48 @@ const markItemAsPrepared = (req, res) => {
 										"An error occured while querying the database.",
 								});
 							} else {
-								res.status(200).json({
-									message: "Marked as prepared.",
-								});
+								Order.populate(
+									newOrder,
+									{
+										path: "items.menuItem",
+										populate: {
+											path: "menuCategory",
+											match: {
+												type:
+													req.user.role === "cook"
+														? { $ne: "Drinks" }
+														: { $eq: "Drinks" },
+											},
+										},
+									},
+									(err, formattedOrder) => {
+										if (err) {
+											res.status(500).json({
+												message:
+													"An error occured while querying the database.",
+											});
+										} else {
+											let items = [];
+											formattedOrder.items.forEach(
+												(item) => {
+													if (
+														item.menuItem
+															.menuCategory !==
+														null
+													) {
+														item.menuItem.menuCategory =
+															item.menuItem.menuCategory._id;
+														items.push(item);
+													}
+												}
+											);
+											formattedOrder.items = items;
+											res.status(200).json(
+												formattedOrder
+											);
+										}
+									}
+								);
 							}
 						});
 					}
