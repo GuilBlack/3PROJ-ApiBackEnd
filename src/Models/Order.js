@@ -51,9 +51,6 @@ const OrderSchema = new mongoose.Schema({
 		type: Boolean,
 		required: true,
 	},
-	message: {
-		type: String,
-	},
 	preferences: {
 		type: String,
 	},

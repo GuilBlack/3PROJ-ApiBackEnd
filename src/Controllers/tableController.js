@@ -1,5 +1,7 @@
 const TableArrangement = require("../Models/TableArrangement");
 
+//only used once
+//not usable anymore
 const makeTableArrangement = (req, res) => {
 	let layout = [];
 	for (i = 0; i < 30; i++) {
@@ -35,6 +37,7 @@ const makeTableArrangement = (req, res) => {
 	});
 };
 
+//update the table arrangement
 const updateTableArrangement = (req, res) => {
 	if (req.user.role === "admin") {
 		TableArrangement.findOne().exec((err, tableArrangement) => {
@@ -76,6 +79,7 @@ const updateTableArrangement = (req, res) => {
 	}
 };
 
+//get the table arrangement
 const getTableArrangement = (req, res) => {
 	TableArrangement.findOne().exec((err, tableArrangement) => {
 		if (err)

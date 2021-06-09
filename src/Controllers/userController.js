@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const MenuItem = require("../Models/MenuItem");
 const passportConfig = require("../auth/passport");
 
+//pretty self-explainatory...
 const register = (req, res, role) => {
 	const { email, firstName, lastName, password } = req.body; //extract username and passwd from the req
 	//find if there is a user that already exists with this username
@@ -54,6 +55,7 @@ const register = (req, res, role) => {
 	});
 };
 
+//gives the customer role to the register function
 const registerCustomer = (req, res) => {
 	if (!req.body.role) register(req, res, "customer");
 	else
@@ -63,6 +65,7 @@ const registerCustomer = (req, res) => {
 		});
 };
 
+//gives the given staff role to the register function (must be admin to use this function)
 const registerStaff = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized", msgError: true });
@@ -78,6 +81,7 @@ const registerStaff = (req, res) => {
 	}
 };
 
+//pretty self-explainatory...
 const logout = (req, res) => {
 	if (req.headers.origin) {
 		res.clearCookie("access-token", {
@@ -97,6 +101,7 @@ const logout = (req, res) => {
 	res.json({ user: { email: "", role: "" }, success: true });
 };
 
+//pretty self-explainatory...
 const login = (req, res) => {
 	if (req.isAuthenticated()) {
 		const { _id, email, firstName, lastName, role } = req.user;
@@ -126,6 +131,7 @@ const login = (req, res) => {
 	}
 };
 
+//setting the options for the cookies depending if it's from an app or from the website
 const setCookiesOptions = (isFromDomain) => {
 	const params = [
 		{
@@ -149,6 +155,7 @@ const setCookiesOptions = (isFromDomain) => {
 	}
 };
 
+//gives a list of staff member to the admins
 const listStaff = (req, res) => {
 	if (req.user.role !== "admin")
 		res.status(401).json({ message: "Unauthorized", msgError: true });
@@ -167,6 +174,7 @@ const listStaff = (req, res) => {
 	}
 };
 
+//returns a token
 const signToken = (userID) => {
 	//setting up the jwt token
 	return jwt.sign(
@@ -179,10 +187,12 @@ const signToken = (userID) => {
 	);
 };
 
+//CRUD for the cart (create, update amount, delete and get)
 const addToCart = (req, res) => {
 	if (req.body.menuItem && req.body.amount > 0) {
 		var menuItem = mongoose.Types.ObjectId(req.body.menuItem);
 
+		//checks if menu item exists
 		MenuItem.findOne({ _id: menuItem }, (err, item) => {
 			if (err)
 				return res.status(500).json({ message: "An error occurred." });
@@ -195,6 +205,9 @@ const addToCart = (req, res) => {
 			let isInCart = false;
 			let index;
 
+			//checks if menu item is in the cart
+			//if true, it will be added to the existing item
+			//else it will create a new cart item
 			req.user.cart.forEach((e, i) => {
 				if (e.menuItem == req.body.menuItem) {
 					isInCart = true;
@@ -219,6 +232,7 @@ const addToCart = (req, res) => {
 					amount: req.body.amount,
 				});
 
+			//save the cart
 			req.user.save((err, user) => {
 				if (err)
 					return res
@@ -351,6 +365,7 @@ const editAmountInCart = (req, res) => {
 	}
 };
 
+//add credits to balance
 const topup = (req, res) => {
 	if (req.user.role === "customer" && req.body.amount) {
 		if (req.user.balance === undefined) {
