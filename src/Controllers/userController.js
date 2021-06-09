@@ -369,11 +369,8 @@ const editAmountInCart = (req, res) => {
 //add credits to balance
 const topup = (req, res) => {
 	if (req.user.role === "customer" && req.body.amount) {
-		if (req.user.balance === undefined) {
-			req.user.balance = req.body.amount;
-		} else {
-			req.user.balance += req.body.amount;
-		}
+
+		Number(req.user.balance) += Number(req.body.amount);
 
 		req.user.save((err, newUser) => {
 			if (err) {
