@@ -247,7 +247,6 @@ const confirmOrder = (req, res) => {
 								}
 								if (confirmStock) {
 									order.pending = false;
-									order.message = req.body.message;
 									order.items.forEach((item) => {
 										item.preparing = true;
 									});
@@ -275,7 +274,10 @@ const confirmOrder = (req, res) => {
 													);
 												}
 											);
-											res.status(200).json(newOrder);
+											res.status(200).json({
+												order: newOrder,
+												message: "The order has been successfully confirmed. The stock has been updated."
+											});
 										}
 									});
 								} else {
@@ -303,7 +305,6 @@ const confirmOrder = (req, res) => {
 						if (order) {
 							order.cancelled = true;
 							order.pending = false;
-							order.message = req.body.message;
 
 							order.save((err, cancelledOrder) => {
 								if (err) {
@@ -312,8 +313,9 @@ const confirmOrder = (req, res) => {
 											"An error occured while querying the database.",
 									});
 								} else {
-									res.status(200).json({
-										message: "Order cancelled.",
+									res.status(400).json({
+										order: cancelledOrder,
+										message: "Order cancelled because of lack of ingredients."
 									});
 								}
 							});
@@ -449,7 +451,7 @@ const getOrdersForBarmen = (req, res) => {
 							newOrders.push(order);
 						}
 					});
-					res.status(200).json(orders);
+					res.status(200).json(newOrders);
 				}
 			});
 	} else {
@@ -483,9 +485,7 @@ const markItemAsPrepared = (req, res) => {
 										"An error occured while querying the database.",
 								});
 							} else {
-								res.status(200).json({
-									message: "Marked as prepared.",
-								});
+								res.status(200).json(newOrder);
 							}
 						});
 					}
@@ -565,7 +565,7 @@ const markAsPaidForUser = (req, res) => {
 						if (totalCost > req.user.balance) {
 							res.status(400).json({
 								message:
-									"You don't have enough credits to pay for this order!",
+									"You don't have enough in your balance to pay for this order!",
 							});
 						} else {
 							order.paid = true;
