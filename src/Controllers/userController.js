@@ -124,6 +124,7 @@ const login = (req, res) => {
 					firstName: firstName,
 					lastName: lastName,
 					role: role,
+					loyaltyPoints: req.user.loyaltyPoints,
 					balance: req.user.balance,
 					cart: user.cart,
 				});
