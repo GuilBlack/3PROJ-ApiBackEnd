@@ -370,7 +370,7 @@ const editAmountInCart = (req, res) => {
 const topup = (req, res) => {
 	if (req.user.role === "customer" && req.body.amount) {
 
-		Number(req.user.balance) += Number(req.body.amount);
+		req.user.balance += Number(req.body.amount);
 
 		req.user.save((err, newUser) => {
 			if (err) {
