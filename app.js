@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const { dbPassword, dbUsername } = require("./dbUser");
 const { routes } = require("./src/Routes/appRoutes");
 const { resetReservations } = require("./src/scheduledTasks/reservationsTasks");
+const { deleteCancelledOrders } = require("./src/scheduledTasks/ordersTasks");
 
 //creating the express app
 const app = express();
@@ -37,6 +38,10 @@ mongoose.connect(
 //cron task that will repeat itself every night at 00:00
 cron.schedule("0 0 * * *", () => {
 	resetReservations();
+});
+
+cron.schedule("0 0 1 * *", () => {
+	deleteCancelledOrders();
 });
 
 var limiter = new RateLimit({

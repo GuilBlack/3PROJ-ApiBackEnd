@@ -679,7 +679,9 @@ const markAsPaidForUser = (req, res) => {
 									} else {
 										//debiting total cost from user's balance
 										req.user.balance -= totalCost;
-										if (req.body.loyaltyPoints) {
+										if (
+											Number(req.body.loyaltyPoints) > 0
+										) {
 											req.user.loyaltyPoints -= Number(
 												req.body.loyaltyPoints
 											);
