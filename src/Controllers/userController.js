@@ -139,12 +139,12 @@ const setCookiesOptions = (isFromDomain) => {
 			maxAge: 7 * 24 * 60 * 60 * 1000,
 			httpOnly: true,
 			sameSite: "None",
-			// secure: true,
+			secure: true,
 		},
 		{
 			maxAge: 7 * 24 * 60 * 60 * 1000,
 			sameSite: "None",
-			// secure: true,
+			secure: true,
 		},
 	];
 	if (isFromDomain) {
@@ -369,7 +369,6 @@ const editAmountInCart = (req, res) => {
 //add credits to balance
 const topup = (req, res) => {
 	if (req.user.role === "customer" && req.body.amount) {
-
 		req.user.balance += Number(req.body.amount);
 
 		req.user.save((err, newUser) => {
