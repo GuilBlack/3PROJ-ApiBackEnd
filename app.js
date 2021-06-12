@@ -54,7 +54,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //cors to communicate with the admin website
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(
+	cors({ credentials: true, origin: "https://admin.guillaumeblackburn.me" })
+);
 
 //routes
 routes(app);
