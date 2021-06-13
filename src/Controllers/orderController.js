@@ -297,9 +297,20 @@ const confirmOrder = (req, res) => {
 										}
 									});
 								} else {
-									res.status(400).json({
-										message:
-											"You don't have enough ingredients.",
+									order.pending = false;
+									order.cancelled = true;
+									order.save((err, newOrder) => {
+										if (err) {
+											res.status(500).json({
+												message:
+													"An error occured while querying the database. Couldn't modify order.",
+											});
+										} else {
+											res.status(400).json({
+												message:
+													"You don't have enough ingredients.",
+											});
+										}
 									});
 								}
 							} else {
@@ -727,6 +738,10 @@ const markAsPaidForUser = (req, res) => {
 												);
 												res.status(200).json({
 													message: `This transaction was approved. You now have ${customer.balance} credits on your account and ${customer.loyaltyPoints} loyalty points.`,
+													balance: customer.balance,
+													loyaltyPoints:
+														customer.loyaltyPoints,
+													user: customer,
 												});
 											}
 										});
